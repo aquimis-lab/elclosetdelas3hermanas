@@ -456,6 +456,9 @@
       var ventas = [];             // todas las ventas
       var fotoDataUrl = "";        // foto en edición (data URL)
       var desuscribir = [];
+      var espejo = {};             // id -> datos hoy publicados en «catalogo»
+      var espejoListo = false;     // true cuando ya llegó el primer snapshot de «catalogo»
+      var sincronizando = false;   // evita escrituras de espejo en paralelo
 
       function $(id){ return document.getElementById(id); }
       function dinero(n){ return "$" + (Math.round((+n || 0) * 100) / 100).toFixed(2); }
@@ -484,6 +487,41 @@
           stock: d.stock,
           foto: d.foto || ""
         };
+      }
+      function pubNormalizado(d){
+        d = d || {};
+        return {
+          duenaUid: d.duenaUid || "",
+          nombre: d.nombre || "",
+          categoria: d.categoria || "",
+          precio: +d.precio || 0,
+          stock: +d.stock || 0,
+          foto: d.foto || ""
+        };
+      }
+      // Sincronización del espejo al cargar: los productos creados antes de que
+      // existiera «catalogo» (o con datos desactualizados) se publican solos
+      // para que salgan en la tienda sin tener que editarlos a mano.
+      function sincronizarEspejo(){
+        if(!me || !db || !espejoListo || sincronizando) return;
+        var pendientes = productos.filter(function(p){
+          if(p.duenaUid !== me.uid) return false;
+          var pub = pubNormalizado(p);
+          var actual = espejo[p.id];
+          if(!actual) return true;
+          var hoy = pubNormalizado(actual);
+          return ["duenaUid","nombre","categoria","precio","stock","foto"].some(function(c){
+            return hoy[c] !== pub[c];
+          });
+        });
+        if(!pendientes.length) return;
+        sincronizando = true;
+        var lote = db.batch();
+        pendientes.forEach(function(p){
+          lote.set(db.collection("catalogo").doc(p.id), datosPublicos(p));
+        });
+        function fin(){ sincronizando = false; }
+        lote.commit().then(fin, fin);
       }
 
       // ================= Modal =================
@@ -606,12 +644,21 @@
       }
 
       function escucharDatos(){
+        espejo = {};
+        espejoListo = false;
         desuscribir.push(db.collection("productos").onSnapshot(function(snap){
           productos = [];
           snap.forEach(function(doc){ var p = doc.data(); p.id = doc.id; productos.push(p); });
           productos.sort(function(a,b){ return String(a.nombre||"").localeCompare(String(b.nombre||"")); });
           renderCatalogo(); renderVentaProductos();
+          sincronizarEspejo();
         }, function(){ /* errores de permisos se reflejan como listas vacías */ }));
+        desuscribir.push(db.collection("catalogo").onSnapshot(function(snap){
+          espejo = {};
+          snap.forEach(function(doc){ espejo[doc.id] = doc.data(); });
+          espejoListo = true;
+          sincronizarEspejo();
+        }, function(){ }));
         desuscribir.push(db.collection("ventas").orderBy("fecha","desc").onSnapshot(function(snap){
           ventas = [];
           snap.forEach(function(doc){ var v = doc.data(); v.id = doc.id; ventas.push(v); });
@@ -821,10 +868,15 @@
               [
                 { texto:"Cancelar", clase:"btn-borde" },
                 { texto:"Sí, quitar", clase:"btn-peligro", onClick: function(){
-                    var loteBorrar = db.batch();
-                    loteBorrar.delete(db.collection("productos").doc(p.id));
-                    loteBorrar.delete(db.collection("catalogo").doc(p.id));
-                    loteBorrar.commit().then(cerrarModal).catch(function(){
+                    // Borrado en dos pasos separados, nunca en un solo lote:
+                    // primero el documento privado de «productos» y después su
+                    // espejo en «catalogo». Si el espejo no existe (o su borrado
+                    // falla), el producto igual queda quitado del panel.
+                    db.collection("productos").doc(p.id).delete().then(function(){
+                      return db.collection("catalogo").doc(p.id).delete().catch(function(){});
+                    }).then(function(){
+                      cerrarModal();
+                    }).catch(function(){
                       cerrarModal();
                       abrirModal("No se pudo quitar", '<p style="margin:0;">Inténtalo de nuevo en un momento.</p>', [{ texto:"Entendido" }]);
                     });
