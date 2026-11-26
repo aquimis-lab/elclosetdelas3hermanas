@@ -50,11 +50,6 @@
       .topbar a.brand{display:flex;align-items:center;gap:10px}
       .brand-logo{width:40px;height:40px;flex:0 0 auto}
       .brand small{display:block;font-family:"Nunito Sans",sans-serif;font-weight:700;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--rose)}
-      .top-wa{
-        display:inline-flex;align-items:center;gap:7px;background:var(--wa);color:#fff;
-        font-weight:800;font-size:.85rem;text-decoration:none;padding:9px 14px;border-radius:999px;white-space:nowrap;
-      }
-      .top-wa:active{background:var(--wa-dark)}
       .cart-btn{
         margin-left:auto;
         position:relative;display:inline-flex;align-items:center;justify-content:center;
@@ -297,15 +292,7 @@
       .modal-actions .btn{flex:1}
       .btn-wa-modal{background:var(--wa);color:#fff}
       .btn-wa-modal:active{background:var(--wa-dark)}
-
-      /* ---------- Floating WhatsApp ---------- */
-      .wa-float{
-        position:fixed;right:16px;bottom:16px;z-index:50;width:58px;height:58px;border-radius:50%;
-        background:var(--wa);display:flex;align-items:center;justify-content:center;
-        box-shadow:0 8px 22px rgba(23,138,68,.35);text-decoration:none;
-      }
-      .wa-float svg{width:30px;height:30px;fill:#fff}
-      .top-wa svg,.btn-wa svg{width:17px;height:17px;fill:#fff;flex:0 0 auto}
+      .btn-wa svg{width:17px;height:17px;fill:#fff;flex:0 0 auto}
     </style>
   </head>
   <body>
@@ -316,10 +303,6 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7.2 14.6l.1.1c.1 0 .3.1.4.1h9.9c.8 0 1.4-.4 1.7-1L22 6H5.2L4.3 3H1v2h2l3.6 7.6-1.4 2.4c-.2.3-.3.7-.3 1 0 1.1.9 2 2 2h12v-2H7.4l.1-.1.8-1.3z"/></svg>
           <span class="cart-count" id="cartCount">0</span>
         </button>
-        <a class="top-wa" href="https://wa.me/593963057331?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20un%20producto%20de%20El%20Cl%C3%B3set%20de%20las%203%20hermanas" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.6-6.1c-.3-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4 0-.5.2-.8l.5-.6c.1-.2.1-.4 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1.1 2.7c.1.2 1.9 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.5-.3z"/></svg>
-          WhatsApp
-        </a>
       </div>
     </header>
 
@@ -329,7 +312,7 @@
         <div class="wrap hero-grid">
           <div>
             <h1>Todo lo que buscas, en <em>un solo clóset</em></h1>
-            <p>Perfumería, ropa, belleza, hogar, maquillaje, zapatos y juguetes. Mira el catálogo, elige tu favorito y pídelo por WhatsApp — o sepáralo con un abono en nuestro sistema de apartados. Y no te pierdas la pestaña de ofertas.</p>
+            <p>Perfumería, ropa, belleza, hogar, maquillaje, zapatos y juguetes. Mira el catálogo, añade tu favorito al carrito y desde ahí envía tu pedido por WhatsApp — o sepáralo con un abono en nuestro sistema de apartados. Y no te pierdas la pestaña de ofertas.</p>
             <div class="hero-ctas">
               <a class="btn btn-rose" href="#catalogo">Ver el catálogo</a>
               <a class="btn btn-ghost" href="#apartados">Cómo funcionan los apartados</a>
@@ -367,7 +350,7 @@
       <section class="section" id="catalogo">
         <div class="wrap">
           <div class="section-head"><h2>Catálogo</h2></div>
-          <p class="sub">El catálogo se actualiza al momento con los productos que cargamos en la tienda. Añade lo que te guste al carrito y envía tu pedido por WhatsApp, o pide un producto directo con su botón.</p>
+          <p class="sub">El catálogo se actualiza al momento con los productos que cargamos en la tienda. Añade lo que te guste al carrito y desde el carrito envía tu pedido por WhatsApp.</p>
           <div class="grid" id="grid"></div>
           <p class="empty-msg" id="emptyMsg">Cargando productos…</p>
         </div>
@@ -513,10 +496,6 @@
       </div>
     </div>
 
-    <a class="wa-float" href="https://wa.me/593963057331?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20un%20producto%20de%20El%20Cl%C3%B3set%20de%20las%203%20hermanas" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.6-6.1c-.3-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4 0-.5.2-.8l.5-.6c.1-.2.1-.4 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1.1 2.7c.1.2 1.9 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2 0-.1-.2-.2-.5-.3z"/></svg>
-    </a>
-
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script>
@@ -650,12 +629,12 @@
           return;
         }
         if(catalogError){
-          emptyMsg.textContent = "No pudimos cargar el catálogo en este momento. Escríbenos por WhatsApp y te ayudamos con tu pedido.";
+          emptyMsg.textContent = "No pudimos cargar el catálogo en este momento. Inténtalo de nuevo en un momento.";
           emptyMsg.style.display = "block";
           return;
         }
         if(!PRODUCTS.length){
-          emptyMsg.textContent = "Estamos cargando nuestros productos. Vuelve pronto o escríbenos por WhatsApp.";
+          emptyMsg.textContent = "Estamos cargando nuestros productos. Vuelve pronto.";
           emptyMsg.style.display = "block";
           return;
         }
@@ -668,7 +647,6 @@
           var card = document.createElement("article");
           card.className = "card";
           var skuTxt = p.sku ? " (SKU " + p.sku + ")" : "";
-          var orderText = "Hola, me interesa este producto de El Clóset de las 3 hermanas:\n• " + p.name + skuTxt + " — " + money(p.price) + "\n¿Sigue disponible?";
           var apartText = "Hola, quiero APARTAR este producto de El Clóset de las 3 hermanas:\n• " + p.name + skuTxt + " — " + money(p.price) + "\n¿Me confirmas el abono inicial para separarlo?";
           var badges = "";
           if(p.old) badges += '<span class="offer-badge">−' + Math.round((1 - p.price / p.old) * 100) + '%</span>';
@@ -679,12 +657,10 @@
           if(soldOut){
             actions =
               '<button class="btn-add" type="button" disabled>Agotado</button>' +
-              '<span class="btn-wa is-disabled" aria-disabled="true">' + WA_SVG + 'Pedir por WhatsApp</span>' +
               '<span class="btn-apart is-disabled" aria-disabled="true">Apartar con abono</span>';
           } else {
             actions =
               '<button class="btn-add" data-add="' + esc(p.id) + '" type="button">Añadir al carrito</button>' +
-              '<a class="btn-wa" target="_blank" rel="noopener" href="' + waLink(orderText) + '">' + WA_SVG + 'Pedir por WhatsApp</a>' +
               '<button class="btn-apart" type="button" data-apart="' + esc(p.id) + '">Apartar con abono</button>';
           }
           card.innerHTML =
