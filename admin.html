@@ -1,0 +1,1026 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="data:," />
+    <title>Panel — El Clóset de las 3 hermanas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2.25rem; }
+      * { box-sizing: border-box; }
+      :root{
+        --morado:#7b2d8e;
+        --morado-osc:#5e1f6e;
+        --morado-suave:#f6eef8;
+        --tinta:#241a26;
+        --gris:#6f6472;
+        --linea:#e7dcea;
+        --fondo:#ffffff;
+        --verde:#1e7d46;
+        --verde-bg:#e7f5ec;
+        --ambar:#9a6a00;
+        --ambar-bg:#fdf3d7;
+        --rojo:#b3261e;
+        --rojo-bg:#fdecea;
+        --radio:14px;
+      }
+      html{ color-scheme: light; }
+      body{
+        margin:0; background:var(--fondo); color:var(--tinta);
+        font-family:'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        font-size:15px; line-height:1.45;
+        -webkit-font-smoothing:antialiased;
+      }
+      h1,h2,h3{ margin:0; line-height:1.2; }
+      button{ font-family:inherit; cursor:pointer; }
+      input, select, textarea{ font-family:inherit; font-size:15px; color:var(--tinta); }
+      .oculto{ display:none !important; }
+
+      /* ---------- Ingreso ---------- */
+      .login-wrap{
+        min-height:100dvh; display:flex; align-items:center; justify-content:center;
+        padding:20px 16px; background:var(--morado-suave);
+      }
+      .login-card{
+        background:#fff; width:100%; max-width:400px; border:1px solid var(--linea);
+        border-radius:20px; padding:30px 26px 26px; box-shadow:0 12px 32px rgba(94,31,110,.12);
+      }
+      .login-card .marca{
+        width:54px; height:54px; border-radius:16px; background:var(--morado);
+        color:#fff; display:flex; align-items:center; justify-content:center;
+        font-weight:700; font-size:22px; margin-bottom:14px;
+      }
+      .login-card h1{ font-size:21px; font-weight:700; }
+      .login-card p.sub{ color:var(--gris); margin:6px 0 20px; font-size:14px; }
+      .campo{ margin-bottom:14px; }
+      .campo label{ display:block; font-size:13px; font-weight:600; margin-bottom:5px; }
+      .campo input, .campo select{
+        width:100%; padding:9px 12px; border:1.5px solid var(--linea); border-radius:10px;
+        background:#fff; outline:none;
+      }
+      .campo input:focus, .campo select:focus{ border-color:var(--morado); }
+      .campo .ayuda{ font-size:12px; color:var(--gris); margin-top:4px; }
+      .btn{
+        display:inline-flex; align-items:center; justify-content:center; gap:8px;
+        border:none; border-radius:10px; padding:10px 18px; font-size:15px; font-weight:600;
+        background:var(--morado); color:#fff; min-height:44px;
+      }
+      .btn:hover{ background:var(--morado-osc); }
+      .btn:disabled{ opacity:.55; cursor:default; }
+      .btn-block{ width:100%; }
+      .btn-suave{ background:var(--morado-suave); color:var(--morado-osc); }
+      .btn-suave:hover{ background:#eeddf3; }
+      .btn-borde{ background:#fff; border:1.5px solid var(--linea); color:var(--tinta); }
+      .btn-borde:hover{ background:#faf6fb; }
+      .btn-peligro{ background:#fff; border:1.5px solid #f0c6c3; color:var(--rojo); }
+      .btn-peligro:hover{ background:var(--rojo-bg); }
+      .btn-chico{ min-height:38px; padding:6px 13px; font-size:13.5px; border-radius:9px; }
+      .error{
+        background:var(--rojo-bg); color:var(--rojo); border-radius:10px;
+        padding:10px 12px; font-size:13.5px; margin-bottom:14px;
+      }
+      .ok-msg{
+        background:var(--verde-bg); color:var(--verde); border-radius:10px;
+        padding:10px 12px; font-size:13.5px; margin-bottom:14px;
+      }
+
+      /* ---------- App ---------- */
+      .app{ max-width:1060px; margin:0 auto; padding:0 16px 60px; }
+      header.top{
+        display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+        padding:16px 0 12px; border-bottom:1px solid var(--linea);
+      }
+      header.top .marca{
+        width:42px; height:42px; border-radius:12px; background:var(--morado); color:#fff;
+        display:flex; align-items:center; justify-content:center; font-weight:700; font-size:17px; flex:none;
+      }
+      header.top .tit{ flex:1; min-width:170px; }
+      header.top .tit h1{ font-size:17px; font-weight:700; }
+      header.top .tit .quien{ font-size:13px; color:var(--gris); }
+      header.top .tit .quien strong{ color:var(--morado-osc); }
+      .top-acciones{ display:flex; gap:8px; flex-wrap:wrap; }
+
+      nav.tabs{
+        display:flex; gap:6px; padding:14px 0 4px; flex-wrap:wrap;
+        position:sticky; top:0; background:#fff; z-index:5;
+      }
+      nav.tabs button{
+        border:1.5px solid var(--linea); background:#fff; color:var(--tinta);
+        border-radius:999px; padding:8px 16px; font-size:14px; font-weight:600; min-height:40px;
+      }
+      nav.tabs button.activa{ background:var(--morado); border-color:var(--morado); color:#fff; }
+      main{ padding-top:16px; }
+      section.vista h2{ font-size:19px; font-weight:700; margin-bottom:4px; }
+      section.vista .desc{ color:var(--gris); font-size:13.5px; margin:0 0 16px; }
+
+      .tarjetas{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+      .stat{
+        border:1px solid var(--linea); border-radius:var(--radio); padding:16px;
+        background:#fff;
+      }
+      .stat .et{ font-size:12.5px; font-weight:600; color:var(--gris); text-transform:uppercase; letter-spacing:.04em; }
+      .stat .num{ font-size:26px; font-weight:700; margin-top:4px; }
+      .stat.destacada{ background:var(--morado-suave); border-color:#e2cbe9; }
+      .stat.destacada .num{ color:var(--morado-osc); }
+
+      .tarjeta{
+        border:1px solid var(--linea); border-radius:var(--radio); padding:16px; margin-bottom:12px; background:#fff;
+      }
+      .tarjeta .fila{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:baseline; }
+      .tarjeta .fecha{ font-size:13px; color:var(--gris); }
+      .badge{
+        display:inline-block; font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px;
+      }
+      .badge-pagada{ background:var(--verde-bg); color:var(--verde); }
+      .badge-apartado{ background:var(--ambar-bg); color:var(--ambar); }
+      .badge-duena{ background:var(--morado-suave); color:var(--morado-osc); }
+      .items{ margin:10px 0 0; padding:0; list-style:none; }
+      .items li{
+        display:flex; justify-content:space-between; gap:10px; padding:6px 0;
+        border-top:1px dashed var(--linea); font-size:14px;
+      }
+      .items li:first-child{ border-top:none; }
+      .items .cant{ color:var(--gris); }
+      .totales{ margin-top:10px; padding-top:10px; border-top:1px solid var(--linea); font-size:14px; }
+      .totales .fila{ padding:2px 0; }
+      .totales .corresponde{ font-weight:700; color:var(--morado-osc); font-size:15.5px; }
+      .vacio{
+        border:1.5px dashed var(--linea); border-radius:var(--radio); padding:28px 18px;
+        text-align:center; color:var(--gris); font-size:14px; background:#fdfafd;
+      }
+
+      /* Catálogo */
+      .grid-prod{ display:grid; grid-template-columns:repeat(auto-fill,minmax(215px,1fr)); gap:12px; }
+      .prod{ border:1px solid var(--linea); border-radius:var(--radio); overflow:hidden; background:#fff; display:flex; flex-direction:column; }
+      .prod .foto{ aspect-ratio:4/3; background:var(--morado-suave); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+      .prod .foto img{ width:100%; height:100%; object-fit:cover; display:block; }
+      .prod .foto .sinfoto{ color:var(--morado); font-size:13px; font-weight:600; padding:10px; text-align:center; }
+      .prod .cuerpo{ padding:12px 14px 14px; display:flex; flex-direction:column; gap:3px; flex:1; }
+      .prod .nombre{ font-weight:600; font-size:15px; }
+      .prod .cat{ font-size:12.5px; color:var(--gris); }
+      .prod .precios{ display:flex; gap:12px; font-size:13.5px; margin-top:4px; flex-wrap:wrap; }
+      .prod .precios b{ font-size:15px; }
+      .prod .stock{ font-size:13px; color:var(--gris); }
+      .prod .stock.agotado{ color:var(--rojo); font-weight:600; }
+      .prod .acciones{ display:flex; gap:8px; margin-top:10px; }
+
+      /* Formularios */
+      .form-card{ border:1px solid var(--linea); border-radius:var(--radio); padding:18px; margin-bottom:20px; background:#fff; }
+      .form-card h3{ font-size:16px; font-weight:700; margin-bottom:12px; }
+      .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+      .form-grid .ancho{ grid-column:1 / -1; }
+      .foto-box{
+        border:2px dashed var(--morado); background:var(--morado-suave); border-radius:12px;
+        padding:14px; text-align:center;
+      }
+      .foto-box .titulo{ font-weight:700; color:var(--morado-osc); font-size:14.5px; margin-bottom:8px; }
+      .foto-box img{ max-width:100%; max-height:190px; border-radius:10px; margin:10px auto 4px; display:block; }
+      .foto-box input[type=file]{ display:none; }
+
+      /* Venta nueva */
+      .buscador{ width:100%; padding:9px 12px; border:1.5px solid var(--linea); border-radius:10px; margin-bottom:10px; }
+      .lista-vender{ max-height:340px; overflow:auto; border:1px solid var(--linea); border-radius:12px; }
+      .vender-fila{
+        display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--linea);
+      }
+      .vender-fila:last-child{ border-bottom:none; }
+      .vender-fila img{ width:44px; height:44px; border-radius:8px; object-fit:cover; flex:none; background:var(--morado-suave); }
+      .vender-fila .info{ flex:1; min-width:0; }
+      .vender-fila .info .n{ font-weight:600; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .vender-fila .info .d{ font-size:12.5px; color:var(--gris); }
+      .vender-fila .cant{ width:70px; }
+      .vender-fila .cant input{ width:100%; padding:7px 8px; border:1.5px solid var(--linea); border-radius:8px; text-align:center; }
+      .total-venta{ font-size:17px; font-weight:700; color:var(--morado-osc); }
+
+      /* Corte */
+      .corte-controles{ display:flex; gap:8px; flex-wrap:wrap; align-items:end; margin-bottom:16px; }
+      .corte-controles .campo{ margin-bottom:0; }
+      .corte-total{
+        background:var(--morado-suave); border:1px solid #e2cbe9; border-radius:var(--radio);
+        padding:18px; margin-bottom:18px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center;
+      }
+      .corte-total .num{ font-size:30px; font-weight:700; color:var(--morado-osc); }
+      .corte-total .et{ font-size:13px; color:var(--gris); font-weight:600; }
+
+      /* Modal */
+      .modal-fondo{
+        position:fixed; inset:0; background:rgba(30,10,38,.5); z-index:50;
+        display:flex; align-items:center; justify-content:center; padding:16px;
+      }
+      .modal{
+        background:#fff; border-radius:16px; padding:22px; width:100%; max-width:400px;
+        max-height:90dvh; overflow:auto;
+      }
+      .modal h3{ font-size:16.5px; font-weight:700; margin-bottom:12px; }
+      .modal .acciones{ display:flex; gap:8px; justify-content:flex-end; margin-top:16px; flex-wrap:wrap; }
+      .cargando{ text-align:center; color:var(--gris); padding:34px 0; }
+
+      @media (max-width:640px){
+        .tarjetas{ grid-template-columns:1fr; }
+        .form-grid{ grid-template-columns:1fr; }
+        header.top .tit h1{ font-size:15.5px; }
+        .top-acciones .btn{ flex:1; }
+        .top-acciones{ width:100%; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- ============ INGRESO ============ -->
+    <div id="loginView" class="login-wrap">
+      <div class="login-card">
+        <div class="marca">C3</div>
+        <h1>El Clóset de las 3 hermanas</h1>
+        <p class="sub">Panel interno. Ingresa con tu usuario y tu contraseña.</p>
+        <div id="loginError" class="error oculto"></div>
+        <form id="loginForm" autocomplete="off">
+          <div class="campo">
+            <label for="usuario">Usuario</label>
+            <input id="usuario" type="text" placeholder="nombre.apellido" autocapitalize="none" autocomplete="username" required />
+            <div class="ayuda">Ejemplo: lissette.mendez</div>
+          </div>
+          <div class="campo">
+            <label for="clave">Contraseña</label>
+            <input id="clave" type="password" placeholder="Tu contraseña" autocomplete="current-password" required />
+          </div>
+          <button id="btnIngresar" class="btn btn-block" type="submit">Ingresar</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ PANEL ============ -->
+    <div id="appView" class="app oculto">
+      <header class="top">
+        <div class="marca">C3</div>
+        <div class="tit">
+          <h1>El Clóset de las 3 hermanas</h1>
+          <div class="quien">Espacio de <strong id="nombreUsuaria"></strong> · <span id="usuarioUsuaria"></span></div>
+        </div>
+        <div class="top-acciones">
+          <button id="btnCambiarClave" class="btn btn-suave btn-chico" type="button">Cambiar contraseña</button>
+          <button id="btnSalir" class="btn btn-borde btn-chico" type="button">Cerrar sesión</button>
+        </div>
+      </header>
+
+      <nav class="tabs" id="tabs">
+        <button type="button" data-vista="resumen" class="activa">Mi resumen</button>
+        <button type="button" data-vista="catalogo">Mi catálogo</button>
+        <button type="button" data-vista="ventas">Ventas</button>
+        <button type="button" data-vista="corte">Corte semanal</button>
+      </nav>
+
+      <main>
+        <!-- RESUMEN -->
+        <section id="vista-resumen" class="vista">
+          <h2>Mi resumen</h2>
+          <p class="desc">Solo tus productos: lo que te corresponde de todas las ventas, lo que ya cobraste y lo que te deben por apartados.</p>
+          <div class="tarjetas">
+            <div class="stat destacada"><div class="et">Te corresponde en total</div><div class="num" id="resTotal">$0.00</div></div>
+            <div class="stat"><div class="et">Ya cobraste</div><div class="num" id="resCobrado">$0.00</div></div>
+            <div class="stat"><div class="et">Te deben (apartados)</div><div class="num" id="resDeben">$0.00</div></div>
+          </div>
+          <h3 style="font-size:15.5px;font-weight:700;margin-bottom:10px;">Tus últimos movimientos</h3>
+          <div id="resMovimientos"></div>
+        </section>
+
+        <!-- CATÁLOGO -->
+        <section id="vista-catalogo" class="vista oculto">
+          <h2>Mi catálogo</h2>
+          <p class="desc">Aquí administras solo tus productos: los que agregues salen a tu nombre y su stock baja solo cuando se venden.</p>
+          <div class="form-card">
+            <h3 id="prodFormTitulo">Agregar producto</h3>
+            <form id="prodForm">
+              <input type="hidden" id="prodId" />
+              <div class="form-grid">
+                <div class="campo ancho">
+                  <div class="foto-box">
+                    <div class="titulo">Foto del producto</div>
+                    <label class="btn btn-chico" for="prodFoto">Subir foto</label>
+                    <input id="prodFoto" type="file" accept="image/*" />
+                    <img id="prodFotoPreview" class="oculto" alt="Vista previa de la foto del producto" />
+                    <div class="ayuda" id="prodFotoAyuda">Toca «Subir foto» y elige la imagen del producto.</div>
+                  </div>
+                </div>
+                <div class="campo ancho">
+                  <label for="prodNombre">Nombre del producto</label>
+                  <input id="prodNombre" type="text" required placeholder="Ej.: Perfume floral 100 ml" />
+                </div>
+                <div class="campo">
+                  <label for="prodCategoria">Categoría</label>
+                  <select id="prodCategoria">
+                    <option>Perfumería</option>
+                    <option>Ropa</option>
+                    <option>Accesorios de belleza</option>
+                    <option>Hogar</option>
+                    <option>Maquillaje</option>
+                    <option>Zapatos</option>
+                    <option>Juguetería</option>
+                    <option>Ofertas</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label for="prodStock">Stock (unidades)</label>
+                  <input id="prodStock" type="number" min="0" step="1" value="1" required />
+                </div>
+                <div class="campo">
+                  <label for="prodCosto">Costo ($)</label>
+                  <input id="prodCosto" type="number" min="0" step="0.01" value="0" required />
+                </div>
+                <div class="campo">
+                  <label for="prodPrecio">Precio de venta ($)</label>
+                  <input id="prodPrecio" type="number" min="0" step="0.01" value="0" required />
+                </div>
+              </div>
+              <div id="prodError" class="error oculto" style="margin-top:12px;"></div>
+              <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+                <button class="btn" type="submit" id="prodGuardar">Guardar producto</button>
+                <button class="btn btn-borde oculto" type="button" id="prodCancelar">Cancelar edición</button>
+              </div>
+            </form>
+          </div>
+          <div id="misProductos" class="grid-prod"></div>
+          <div id="misProductosVacio" class="vacio oculto">Todavía no tienes productos. Agrega el primero con el formulario de arriba.</div>
+        </section>
+
+        <!-- VENTAS -->
+        <section id="vista-ventas" class="vista oculto">
+          <h2>Ventas</h2>
+          <p class="desc">Registra la venta completa, mezclando productos de las tres si la clienta llevó de todo. En tu espacio solo verás tus productos y lo que te corresponde.</p>
+          <div class="form-card">
+            <h3>Registrar venta</h3>
+            <form id="ventaForm">
+              <div class="form-grid">
+                <div class="campo ancho">
+                  <label for="ventaClienta">Nombre de la clienta</label>
+                  <input id="ventaClienta" type="text" required placeholder="Ej.: María Fernanda" />
+                </div>
+              </div>
+              <div class="campo" style="margin-top:12px;">
+                <label>Productos (elige la cantidad de cada uno)</label>
+                <input id="ventaBuscar" class="buscador" type="search" placeholder="Buscar producto…" />
+                <div class="lista-vender" id="ventaProductos"></div>
+              </div>
+              <div class="form-grid" style="margin-top:12px;">
+                <div class="campo">
+                  <label for="ventaEstado">Estado de la venta</label>
+                  <select id="ventaEstado">
+                    <option value="pagada">Pagada completa</option>
+                    <option value="apartado">Apartado (con abonos)</option>
+                  </select>
+                </div>
+                <div class="campo oculto" id="campoAbonoInicial">
+                  <label for="ventaAbono">Abono inicial ($)</label>
+                  <input id="ventaAbono" type="number" min="0" step="0.01" value="0" />
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;flex-wrap:wrap;gap:10px;">
+                <div>Total de la venta: <span class="total-venta" id="ventaTotal">$0.00</span></div>
+                <button class="btn" type="submit" id="btnRegistrarVenta">Registrar venta</button>
+              </div>
+              <div id="ventaError" class="error oculto" style="margin-top:12px;"></div>
+              <div id="ventaOk" class="ok-msg oculto" style="margin-top:12px;"></div>
+            </form>
+          </div>
+          <h3 style="font-size:15.5px;font-weight:700;margin-bottom:10px;">Ventas con productos tuyos</h3>
+          <div id="listaVentas"></div>
+          <div id="listaVentasVacio" class="vacio oculto">Aún no hay ventas con productos tuyos.</div>
+        </section>
+
+        <!-- CORTE -->
+        <section id="vista-corte" class="vista oculto">
+          <h2>Corte semanal</h2>
+          <p class="desc">Lo que te corresponde en el periodo elegido, contando solo tus productos.</p>
+          <div class="corte-controles">
+            <div class="campo">
+              <label for="corteDesde">Desde</label>
+              <input id="corteDesde" type="date" />
+            </div>
+            <div class="campo">
+              <label for="corteHasta">Hasta</label>
+              <input id="corteHasta" type="date" />
+            </div>
+            <button class="btn btn-suave btn-chico" type="button" id="corteEstaSemana">Esta semana</button>
+            <button class="btn btn-suave btn-chico" type="button" id="corteSemanaPasada">Semana pasada</button>
+            <button class="btn btn-suave btn-chico" type="button" id="corteEsteMes">Este mes</button>
+          </div>
+          <div class="corte-total">
+            <div>
+              <div class="et">Te corresponde en el periodo</div>
+              <div class="num" id="corteTotal">$0.00</div>
+            </div>
+            <div>
+              <div class="et">Cobrado en el periodo</div>
+              <div class="num" id="corteCobrado" style="font-size:22px;">$0.00</div>
+            </div>
+          </div>
+          <div id="corteVentas"></div>
+          <div id="corteVacio" class="vacio oculto">No hay ventas tuyas en este periodo.</div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Modal genérico -->
+    <div id="modalFondo" class="modal-fondo oculto">
+      <div class="modal">
+        <h3 id="modalTitulo"></h3>
+        <div id="modalCuerpo"></div>
+        <div class="acciones" id="modalAcciones"></div>
+      </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script>
+      // ================= Firebase =================
+      var firebaseConfig = {
+        apiKey: "AIzaSyA1xHT7Kl6vZfVMGTqPaN8iFqKthuoo8JQ",
+        authDomain: "el-closet-3-hermanas.firebaseapp.com",
+        projectId: "el-closet-3-hermanas",
+        storageBucket: "el-closet-3-hermanas.firebasestorage.app",
+        messagingSenderId: "317458164821",
+        appId: "1:317458164821:web:1a4ea257b0c9d1c81878dc"
+      };
+      var USUARIAS = {
+        "qm493aNhYAMeet15immnc0yTnp32": { nombre: "Lissette Mendez", usuario: "lissette.mendez" },
+        "yvtVuztP3DUpDQaamuJu9rC4FrH2": { nombre: "Saira Mendez", usuario: "saira.mendez" },
+        "kAYQYhpjEThRf5yhkmzJiF8ciwp1": { nombre: "Marjorie Méndez", usuario: "marjorie.mendez" }
+      };
+      var DOMINIO_CORREO = "@elclosetdelas3hermanas.online";
+
+      var auth = null, db = null;
+      var me = null;               // {uid, nombre, usuario}
+      var productos = [];          // todo el catálogo
+      var ventas = [];             // todas las ventas
+      var fotoDataUrl = "";        // foto en edición (data URL)
+      var desuscribir = [];
+
+      function $(id){ return document.getElementById(id); }
+      function dinero(n){ return "$" + (Math.round((+n || 0) * 100) / 100).toFixed(2); }
+      function esc(s){
+        return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+          return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+        });
+      }
+      function fechaTexto(ts){
+        var d = ts && ts.toDate ? ts.toDate() : (ts ? new Date(ts) : null);
+        if(!d || isNaN(d.getTime())) return "";
+        return d.toLocaleDateString("es-EC", { day:"numeric", month:"short", year:"numeric" }) +
+               " · " + d.toLocaleTimeString("es-EC", { hour:"2-digit", minute:"2-digit" });
+      }
+      function fechaDate(ts){
+        var d = ts && ts.toDate ? ts.toDate() : (ts ? new Date(ts) : null);
+        return (d && !isNaN(d.getTime())) ? d : null;
+      }
+
+      // ================= Modal =================
+      function abrirModal(titulo, cuerpoHTML, botones){
+        $("modalTitulo").textContent = titulo;
+        $("modalCuerpo").innerHTML = cuerpoHTML;
+        var acc = $("modalAcciones");
+        acc.innerHTML = "";
+        (botones || [{ texto:"Cerrar", clase:"btn-borde" }]).forEach(function(b){
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn btn-chico " + (b.clase || "");
+          btn.textContent = b.texto;
+          btn.addEventListener("click", function(){
+            if(b.onClick){ b.onClick(); } else { cerrarModal(); }
+          });
+          acc.appendChild(btn);
+        });
+        $("modalFondo").classList.remove("oculto");
+      }
+      function cerrarModal(){ $("modalFondo").classList.add("oculto"); }
+      $("modalFondo").addEventListener("click", function(e){
+        if(e.target === this) cerrarModal();
+      });
+
+      // ================= Ingreso =================
+      function mostrarLogin(){
+        $("appView").classList.add("oculto");
+        $("loginView").classList.remove("oculto");
+      }
+      function mostrarApp(){
+        $("loginView").classList.add("oculto");
+        $("appView").classList.remove("oculto");
+        $("nombreUsuaria").textContent = me.nombre;
+        $("usuarioUsuaria").textContent = me.usuario;
+      }
+      function errorIngreso(msg){
+        var el = $("loginError");
+        el.textContent = msg;
+        el.classList.remove("oculto");
+      }
+
+      $("loginForm").addEventListener("submit", function(e){
+        e.preventDefault();
+        $("loginError").classList.add("oculto");
+        var usuario = $("usuario").value.trim().toLowerCase();
+        var clave = $("clave").value;
+        if(!usuario || !clave){ errorIngreso("Escribe tu usuario y tu contraseña."); return; }
+        if(!auth){ errorIngreso("No se pudo cargar el sistema de ingreso. Revisa tu conexión e inténtalo de nuevo."); return; }
+        var correo = usuario.indexOf("@") >= 0 ? usuario : usuario + DOMINIO_CORREO;
+        $("btnIngresar").disabled = true;
+        $("btnIngresar").textContent = "Ingresando…";
+        auth.signInWithEmailAndPassword(correo, clave).catch(function(err){
+          $("btnIngresar").disabled = false;
+          $("btnIngresar").textContent = "Ingresar";
+          var msg = "No se pudo ingresar. Revisa tu usuario y contraseña.";
+          if(err && (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password" || err.code === "auth/user-not-found")){
+            msg = "Usuario o contraseña incorrectos. Revisa los datos e inténtalo de nuevo.";
+          } else if(err && err.code === "auth/too-many-requests"){
+            msg = "Demasiados intentos. Espera unos minutos e inténtalo otra vez.";
+          } else if(err && err.code === "auth/network-request-failed"){
+            msg = "Sin conexión. Revisa tu internet e inténtalo de nuevo.";
+          }
+          errorIngreso(msg);
+        });
+      });
+
+      $("btnSalir").addEventListener("click", function(){ auth.signOut(); });
+
+      $("btnCambiarClave").addEventListener("click", function(){
+        abrirModal("Cambiar contraseña",
+          '<div class="campo"><label for="nuevaClave">Nueva contraseña</label>' +
+          '<input id="nuevaClave" type="password" autocomplete="new-password" />' +
+          '<div class="ayuda">Mínimo 6 caracteres. La usarás en tu próximo ingreso.</div></div>' +
+          '<div id="claveError" class="error oculto"></div><div id="claveOk" class="ok-msg oculto"></div>',
+          [
+            { texto:"Cancelar", clase:"btn-borde" },
+            { texto:"Guardar nueva contraseña", onClick: function(){
+                var nueva = $("nuevaClave").value;
+                var errEl = $("claveError"), okEl = $("claveOk");
+                errEl.classList.add("oculto"); okEl.classList.add("oculto");
+                if(!nueva || nueva.length < 6){
+                  errEl.textContent = "La contraseña debe tener al menos 6 caracteres.";
+                  errEl.classList.remove("oculto"); return;
+                }
+                auth.currentUser.updatePassword(nueva).then(function(){
+                  okEl.textContent = "Contraseña cambiada. Úsala en tu próximo ingreso.";
+                  okEl.classList.remove("oculto");
+                  setTimeout(cerrarModal, 1400);
+                }).catch(function(err){
+                  errEl.textContent = (err && err.code === "auth/requires-recent-login")
+                    ? "Por seguridad, cierra sesión, vuelve a entrar y cambia la contraseña enseguida."
+                    : "No se pudo cambiar la contraseña. Inténtalo de nuevo.";
+                  errEl.classList.remove("oculto");
+                });
+              }
+            }
+          ]);
+      });
+
+      // ================= Sesión =================
+      function iniciar(){
+        if(typeof firebase === "undefined"){
+          errorIngreso("No se pudo cargar el sistema de ingreso. Revisa tu conexión e inténtalo de nuevo.");
+          return;
+        }
+        firebase.initializeApp(firebaseConfig);
+        auth = firebase.auth();
+        db = firebase.firestore();
+        auth.onAuthStateChanged(function(user){
+          desuscribir.forEach(function(fn){ try{ fn(); }catch(e){} });
+          desuscribir = [];
+          if(!user){ me = null; mostrarLogin(); return; }
+          var perfil = USUARIAS[user.uid];
+          if(!perfil){ auth.signOut(); errorIngreso("Esta cuenta no pertenece al panel."); return; }
+          me = { uid: user.uid, nombre: perfil.nombre, usuario: perfil.usuario };
+          mostrarApp();
+          escucharDatos();
+        });
+      }
+
+      function escucharDatos(){
+        desuscribir.push(db.collection("productos").onSnapshot(function(snap){
+          productos = [];
+          snap.forEach(function(doc){ var p = doc.data(); p.id = doc.id; productos.push(p); });
+          productos.sort(function(a,b){ return String(a.nombre||"").localeCompare(String(b.nombre||"")); });
+          renderCatalogo(); renderVentaProductos();
+        }, function(){ /* errores de permisos se reflejan como listas vacías */ }));
+        desuscribir.push(db.collection("ventas").orderBy("fecha","desc").onSnapshot(function(snap){
+          ventas = [];
+          snap.forEach(function(doc){ var v = doc.data(); v.id = doc.id; ventas.push(v); });
+          renderResumen(); renderVentas(); renderCorte();
+        }, function(){ }));
+      }
+
+      // ================= Cálculos por usuaria =================
+      function partePropia(v){
+        var subtotal = 0;
+        (v.items || []).forEach(function(it){
+          if(it.duenaUid === me.uid) subtotal += (it.precio || 0) * (it.cantidad || 0);
+        });
+        return subtotal;
+      }
+      function cobradoPropio(v){
+        var mio = partePropia(v);
+        if(mio <= 0) return 0;
+        if(v.estado === "pagada") return mio;
+        var abonado = (v.abonos || []).reduce(function(s,a){ return s + (a.monto || 0); }, 0);
+        if(!v.total) return 0;
+        return Math.min(mio, mio * (abonado / v.total));
+      }
+      function tarjetaVenta(v, opciones){
+        opciones = opciones || {};
+        var mio = partePropia(v);
+        var cobrado = cobradoPropio(v);
+        var misItems = (v.items || []).filter(function(it){ return it.duenaUid === me.uid; });
+        var abonadoTotal = (v.abonos || []).reduce(function(s,a){ return s + (a.monto || 0); }, 0);
+        var saldoTotal = Math.max(0, (v.total || 0) - abonadoTotal);
+        var html = '<div class="tarjeta"><div class="fila"><div><strong>' + esc(v.clienta || "Clienta") + '</strong>' +
+          ' <span class="badge ' + (v.estado === "pagada" ? "badge-pagada" : "badge-apartado") + '">' +
+          (v.estado === "pagada" ? "Pagada" : "Apartado") + '</span></div>' +
+          '<span class="fecha">' + fechaTexto(v.fecha) + '</span></div>' +
+          '<div class="fecha">Registrada por ' + esc(v.registradaPorNombre || "") + ' · Total de la venta: ' + dinero(v.total) + '</div>' +
+          '<ul class="items">';
+        misItems.forEach(function(it){
+          html += '<li><span>' + esc(it.nombre) + ' <span class="cant">× ' + (it.cantidad || 0) + '</span></span><span>' +
+                  dinero((it.precio || 0) * (it.cantidad || 0)) + '</span></li>';
+        });
+        html += '</ul><div class="totales">' +
+          '<div class="fila corresponde"><span>Te corresponde</span><span>' + dinero(mio) + '</span></div>' +
+          '<div class="fila"><span>Ya cobraste de esta venta</span><span>' + dinero(cobrado) + '</span></div>';
+        if(v.estado !== "pagada"){
+          html += '<div class="fila"><span>Te deben de esta venta</span><span>' + dinero(mio - cobrado) + '</span></div>' +
+                  '<div class="fila"><span>Saldo total del apartado</span><span>' + dinero(saldoTotal) + '</span></div>';
+        }
+        html += '</div>';
+        if(opciones.conAbono && v.estado !== "pagada" && saldoTotal > 0){
+          html += '<div style="margin-top:12px;"><button class="btn btn-suave btn-chico" type="button" data-abono="' + v.id + '">Registrar abono</button></div>';
+        }
+        html += '</div>';
+        return html;
+      }
+
+      // ================= Resumen =================
+      function renderResumen(){
+        if(!me) return;
+        var total = 0, cobrado = 0;
+        ventas.forEach(function(v){
+          total += partePropia(v);
+          cobrado += cobradoPropio(v);
+        });
+        $("resTotal").textContent = dinero(total);
+        $("resCobrado").textContent = dinero(cobrado);
+        $("resDeben").textContent = dinero(total - cobrado);
+        var mias = ventas.filter(function(v){ return partePropia(v) > 0; }).slice(0, 8);
+        $("resMovimientos").innerHTML = mias.length
+          ? mias.map(function(v){ return tarjetaVenta(v, {}); }).join("")
+          : '<div class="vacio">Todavía no tienes movimientos. Cuando se venda un producto tuyo, aparecerá aquí.</div>';
+      }
+
+      // ================= Catálogo propio =================
+      function limpiarFormProducto(){
+        $("prodId").value = "";
+        $("prodNombre").value = "";
+        $("prodCategoria").selectedIndex = 0;
+        $("prodCosto").value = 0;
+        $("prodPrecio").value = 0;
+        $("prodStock").value = 1;
+        fotoDataUrl = "";
+        $("prodFoto").value = "";
+        $("prodFotoPreview").classList.add("oculto");
+        $("prodFotoPreview").removeAttribute("src");
+        $("prodFotoAyuda").textContent = "Toca «Subir foto» y elige la imagen del producto.";
+        $("prodFormTitulo").textContent = "Agregar producto";
+        $("prodGuardar").textContent = "Guardar producto";
+        $("prodCancelar").classList.add("oculto");
+        $("prodError").classList.add("oculto");
+      }
+      $("prodCancelar").addEventListener("click", limpiarFormProducto);
+
+      $("prodFoto").addEventListener("change", function(){
+        var file = this.files && this.files[0];
+        if(!file) return;
+        var lector = new FileReader();
+        lector.onload = function(){
+          var img = new Image();
+          img.onload = function(){
+            var max = 800;
+            var escala = Math.min(1, max / Math.max(img.width, img.height));
+            var canvas = document.createElement("canvas");
+            canvas.width = Math.round(img.width * escala);
+            canvas.height = Math.round(img.height * escala);
+            canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+            fotoDataUrl = canvas.toDataURL("image/jpeg", 0.82);
+            $("prodFotoPreview").src = fotoDataUrl;
+            $("prodFotoPreview").classList.remove("oculto");
+            $("prodFotoAyuda").textContent = "Foto lista. Se guardará con el producto.";
+          };
+          img.src = lector.result;
+        };
+        lector.readAsDataURL(file);
+      });
+
+      $("prodForm").addEventListener("submit", function(e){
+        e.preventDefault();
+        var errEl = $("prodError");
+        errEl.classList.add("oculto");
+        var nombre = $("prodNombre").value.trim();
+        var costo = parseFloat($("prodCosto").value) || 0;
+        var precio = parseFloat($("prodPrecio").value) || 0;
+        var stock = parseInt($("prodStock").value, 10) || 0;
+        if(!nombre){ errEl.textContent = "Ponle un nombre al producto."; errEl.classList.remove("oculto"); return; }
+        if(precio <= 0){ errEl.textContent = "El precio de venta debe ser mayor que cero."; errEl.classList.remove("oculto"); return; }
+        var datos = {
+          duenaUid: me.uid,
+          duenaNombre: me.nombre,
+          nombre: nombre,
+          categoria: $("prodCategoria").value,
+          costo: costo,
+          precio: precio,
+          stock: stock,
+          foto: fotoDataUrl || ""
+        };
+        $("prodGuardar").disabled = true;
+        var id = $("prodId").value;
+        var prom = id
+          ? db.collection("productos").doc(id).update(datos)
+          : db.collection("productos").add(datos);
+        prom.then(function(){
+          $("prodGuardar").disabled = false;
+          limpiarFormProducto();
+        }).catch(function(){
+          $("prodGuardar").disabled = false;
+          errEl.textContent = "No se pudo guardar el producto. Inténtalo de nuevo.";
+          errEl.classList.remove("oculto");
+        });
+      });
+
+      function renderCatalogo(){
+        if(!me) return;
+        var mios = productos.filter(function(p){ return p.duenaUid === me.uid; });
+        $("misProductosVacio").classList.toggle("oculto", mios.length > 0);
+        $("misProductos").innerHTML = mios.map(function(p){
+          return '<div class="prod"><div class="foto">' +
+            (p.foto ? '<img src="' + p.foto + '" alt="Foto de ' + esc(p.nombre) + '" />'
+                    : '<span class="sinfoto">Sin foto</span>') +
+            '</div><div class="cuerpo">' +
+            '<div class="nombre">' + esc(p.nombre) + '</div>' +
+            '<div class="cat">' + esc(p.categoria || "") + '</div>' +
+            '<div class="precios"><span>Precio <b>' + dinero(p.precio) + '</b></span><span>Costo ' + dinero(p.costo) + '</span></div>' +
+            '<div class="stock' + ((p.stock || 0) <= 0 ? ' agotado' : '') + '">' +
+              ((p.stock || 0) <= 0 ? 'Agotado' : 'Stock: ' + p.stock) + '</div>' +
+            '<div class="acciones">' +
+              '<button class="btn btn-suave btn-chico" type="button" data-editar="' + p.id + '">Editar</button>' +
+              '<button class="btn btn-peligro btn-chico" type="button" data-quitar="' + p.id + '">Quitar</button>' +
+            '</div></div></div>';
+        }).join("");
+        $("misProductos").querySelectorAll("[data-editar]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            var p = productos.filter(function(x){ return x.id === btn.getAttribute("data-editar"); })[0];
+            if(!p) return;
+            $("prodId").value = p.id;
+            $("prodNombre").value = p.nombre || "";
+            $("prodCategoria").value = p.categoria || "Perfumería";
+            $("prodCosto").value = p.costo || 0;
+            $("prodPrecio").value = p.precio || 0;
+            $("prodStock").value = p.stock || 0;
+            fotoDataUrl = p.foto || "";
+            if(fotoDataUrl){
+              $("prodFotoPreview").src = fotoDataUrl;
+              $("prodFotoPreview").classList.remove("oculto");
+              $("prodFotoAyuda").textContent = "Foto actual. Sube otra solo si quieres cambiarla.";
+            } else {
+              $("prodFotoPreview").classList.add("oculto");
+            }
+            $("prodFormTitulo").textContent = "Editar producto";
+            $("prodGuardar").textContent = "Guardar cambios";
+            $("prodCancelar").classList.remove("oculto");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          });
+        });
+        $("misProductos").querySelectorAll("[data-quitar]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            var p = productos.filter(function(x){ return x.id === btn.getAttribute("data-quitar"); })[0];
+            if(!p) return;
+            abrirModal("Quitar producto",
+              '<p style="margin:0;">¿Quitar <strong>' + esc(p.nombre) + '</strong> de tu catálogo? Las ventas ya registradas no se borran.</p>',
+              [
+                { texto:"Cancelar", clase:"btn-borde" },
+                { texto:"Sí, quitar", clase:"btn-peligro", onClick: function(){
+                    db.collection("productos").doc(p.id).delete().then(cerrarModal).catch(function(){
+                      cerrarModal();
+                      abrirModal("No se pudo quitar", '<p style="margin:0;">Inténtalo de nuevo en un momento.</p>', [{ texto:"Entendido" }]);
+                    });
+                  }
+                }
+              ]);
+          });
+        });
+      }
+
+      // ================= Registrar venta =================
+      function renderVentaProductos(){
+        var filtro = ($("ventaBuscar").value || "").toLowerCase();
+        var lista = productos.filter(function(p){
+          return (p.stock || 0) > 0 && String(p.nombre || "").toLowerCase().indexOf(filtro) >= 0;
+        });
+        var cont = $("ventaProductos");
+        if(!lista.length){
+          cont.innerHTML = '<div class="vacio" style="border:none;">No hay productos disponibles con stock.</div>';
+          actualizarTotalVenta();
+          return;
+        }
+        cont.innerHTML = lista.map(function(p){
+          return '<div class="vender-fila">' +
+            (p.foto ? '<img src="' + p.foto + '" alt="" />' : '<img alt="" />') +
+            '<div class="info"><div class="n">' + esc(p.nombre) + '</div>' +
+            '<div class="d">' + dinero(p.precio) + ' · de ' + esc(p.duenaNombre || "") + ' · stock ' + (p.stock || 0) + '</div></div>' +
+            '<div class="cant"><input type="number" min="0" max="' + (p.stock || 0) + '" step="1" value="0" data-cant="' + p.id + '" aria-label="Cantidad de ' + esc(p.nombre) + '" /></div>' +
+          '</div>';
+        }).join("");
+        cont.querySelectorAll("[data-cant]").forEach(function(inp){
+          inp.addEventListener("input", actualizarTotalVenta);
+        });
+        actualizarTotalVenta();
+      }
+      function itemsSeleccionados(){
+        var items = [];
+        $("ventaProductos").querySelectorAll("[data-cant]").forEach(function(inp){
+          var cant = parseInt(inp.value, 10) || 0;
+          if(cant <= 0) return;
+          var p = productos.filter(function(x){ return x.id === inp.getAttribute("data-cant"); })[0];
+          if(p) items.push({ producto: p, cantidad: cant });
+        });
+        return items;
+      }
+      function actualizarTotalVenta(){
+        var total = itemsSeleccionados().reduce(function(s, it){ return s + it.producto.precio * it.cantidad; }, 0);
+        $("ventaTotal").textContent = dinero(total);
+      }
+      $("ventaBuscar").addEventListener("input", renderVentaProductos);
+      $("ventaEstado").addEventListener("change", function(){
+        $("campoAbonoInicial").classList.toggle("oculto", this.value !== "apartado");
+      });
+
+      $("ventaForm").addEventListener("submit", function(e){
+        e.preventDefault();
+        var errEl = $("ventaError"), okEl = $("ventaOk");
+        errEl.classList.add("oculto"); okEl.classList.add("oculto");
+        function falla(msg){ errEl.textContent = msg; errEl.classList.remove("oculto"); }
+        var clienta = $("ventaClienta").value.trim();
+        if(!clienta){ falla("Escribe el nombre de la clienta."); return; }
+        var sel = itemsSeleccionados();
+        if(!sel.length){ falla("Elige al menos un producto con cantidad mayor que cero."); return; }
+        for(var i = 0; i < sel.length; i++){
+          if(sel[i].cantidad > (sel[i].producto.stock || 0)){
+            falla("No hay stock suficiente de «" + sel[i].producto.nombre + "»."); return;
+          }
+        }
+        var total = sel.reduce(function(s, it){ return s + it.producto.precio * it.cantidad; }, 0);
+        var estado = $("ventaEstado").value;
+        var abonoInicial = estado === "apartado" ? (parseFloat($("ventaAbono").value) || 0) : 0;
+        if(abonoInicial < 0 || abonoInicial > total){ falla("El abono inicial no puede ser mayor que el total de la venta."); return; }
+        if(estado === "apartado" && abonoInicial >= total && total > 0) estado = "pagada";
+        var venta = {
+          fecha: firebase.firestore.FieldValue.serverTimestamp(),
+          clienta: clienta,
+          registradaPorUid: me.uid,
+          registradaPorNombre: me.nombre,
+          items: sel.map(function(it){
+            return {
+              productoId: it.producto.id,
+              duenaUid: it.producto.duenaUid,
+              duenaNombre: it.producto.duenaNombre,
+              nombre: it.producto.nombre,
+              precio: it.producto.precio,
+              cantidad: it.cantidad
+            };
+          }),
+          total: Math.round(total * 100) / 100,
+          estado: estado,
+          abonos: abonoInicial > 0 ? [{ monto: abonoInicial, fecha: new Date() }] : []
+        };
+        $("btnRegistrarVenta").disabled = true;
+        var batch = db.batch();
+        batch.set(db.collection("ventas").doc(), venta);
+        sel.forEach(function(it){
+          batch.update(db.collection("productos").doc(it.producto.id), {
+            stock: (it.producto.stock || 0) - it.cantidad
+          });
+        });
+        batch.commit().then(function(){
+          $("btnRegistrarVenta").disabled = false;
+          $("ventaClienta").value = "";
+          $("ventaAbono").value = 0;
+          $("ventaEstado").value = "pagada";
+          $("campoAbonoInicial").classList.add("oculto");
+          renderVentaProductos();
+          okEl.textContent = "Venta registrada. El stock se actualizó solo.";
+          okEl.classList.remove("oculto");
+        }).catch(function(){
+          $("btnRegistrarVenta").disabled = false;
+          falla("No se pudo registrar la venta. Inténtalo de nuevo.");
+        });
+      });
+
+      // ================= Lista de ventas =================
+      function enlazarAbonos(contenedor){
+        contenedor.querySelectorAll("[data-abono]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            var v = ventas.filter(function(x){ return x.id === btn.getAttribute("data-abono"); })[0];
+            if(!v) return;
+            var abonado = (v.abonos || []).reduce(function(s,a){ return s + (a.monto || 0); }, 0);
+            var saldo = Math.max(0, (v.total || 0) - abonado);
+            abrirModal("Registrar abono",
+              '<p style="margin:0 0 12px;">Venta de <strong>' + esc(v.clienta || "") + '</strong> · Saldo pendiente: <strong>' + dinero(saldo) + '</strong></p>' +
+              '<div class="campo"><label for="abonoMonto">Monto del abono ($)</label>' +
+              '<input id="abonoMonto" type="number" min="0" step="0.01" /></div>' +
+              '<div id="abonoError" class="error oculto"></div>',
+              [
+                { texto:"Cancelar", clase:"btn-borde" },
+                { texto:"Guardar abono", onClick: function(){
+                    var monto = parseFloat($("abonoMonto").value) || 0;
+                    var errEl = $("abonoError");
+                    if(monto <= 0){ errEl.textContent = "Escribe un monto mayor que cero."; errEl.classList.remove("oculto"); return; }
+                    if(monto > saldo + 0.001){ errEl.textContent = "El abono no puede ser mayor que el saldo."; errEl.classList.remove("oculto"); return; }
+                    var nuevos = (v.abonos || []).concat([{ monto: monto, fecha: new Date() }]);
+                    var datos = { abonos: nuevos };
+                    if(abonado + monto >= (v.total || 0) - 0.001) datos.estado = "pagada";
+                    db.collection("ventas").doc(v.id).update(datos).then(cerrarModal).catch(function(){
+                      errEl.textContent = "No se pudo guardar el abono. Inténtalo de nuevo.";
+                      errEl.classList.remove("oculto");
+                    });
+                  }
+                }
+              ]);
+          });
+        });
+      }
+      function renderVentas(){
+        if(!me) return;
+        var mias = ventas.filter(function(v){ return partePropia(v) > 0; });
+        $("listaVentasVacio").classList.toggle("oculto", mias.length > 0);
+        $("listaVentas").innerHTML = mias.map(function(v){ return tarjetaVenta(v, { conAbono: true }); }).join("");
+        enlazarAbonos($("listaVentas"));
+      }
+
+      // ================= Corte =================
+      function rangoSemana(desplazamiento){
+        var hoy = new Date();
+        var lunes = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - ((hoy.getDay() + 6) % 7) + desplazamiento * 7);
+        var domingo = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + 6);
+        return { desde: lunes, hasta: domingo };
+      }
+      function aInputFecha(d){
+        var m = String(d.getMonth() + 1).padStart(2, "0");
+        var dia = String(d.getDate()).padStart(2, "0");
+        return d.getFullYear() + "-" + m + "-" + dia;
+      }
+      function ponerRango(desde, hasta){
+        $("corteDesde").value = aInputFecha(desde);
+        $("corteHasta").value = aInputFecha(hasta);
+        renderCorte();
+      }
+      $("corteEstaSemana").addEventListener("click", function(){ var r = rangoSemana(0); ponerRango(r.desde, r.hasta); });
+      $("corteSemanaPasada").addEventListener("click", function(){ var r = rangoSemana(-1); ponerRango(r.desde, r.hasta); });
+      $("corteEsteMes").addEventListener("click", function(){
+        var hoy = new Date();
+        ponerRango(new Date(hoy.getFullYear(), hoy.getMonth(), 1), new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0));
+      });
+      $("corteDesde").addEventListener("change", renderCorte);
+      $("corteHasta").addEventListener("change", renderCorte);
+
+      function renderCorte(){
+        if(!me) return;
+        if(!$("corteDesde").value){
+          var r = rangoSemana(0);
+          $("corteDesde").value = aInputFecha(r.desde);
+          $("corteHasta").value = aInputFecha(r.hasta);
+        }
+        var desde = new Date($("corteDesde").value + "T00:00:00");
+        var hasta = new Date($("corteHasta").value + "T23:59:59");
+        var delPeriodo = ventas.filter(function(v){
+          var f = fechaDate(v.fecha);
+          return f && f >= desde && f <= hasta && partePropia(v) > 0;
+        });
+        var total = 0, cobrado = 0;
+        delPeriodo.forEach(function(v){ total += partePropia(v); cobrado += cobradoPropio(v); });
+        $("corteTotal").textContent = dinero(total);
+        $("corteCobrado").textContent = dinero(cobrado);
+        $("corteVacio").classList.toggle("oculto", delPeriodo.length > 0);
+        $("corteVentas").innerHTML = delPeriodo.map(function(v){ return tarjetaVenta(v, {}); }).join("");
+      }
+
+      // ================= Navegación =================
+      $("tabs").querySelectorAll("button").forEach(function(btn){
+        btn.addEventListener("click", function(){
+          $("tabs").querySelectorAll("button").forEach(function(b){ b.classList.remove("activa"); });
+          btn.classList.add("activa");
+          ["resumen","catalogo","ventas","corte"].forEach(function(v){
+            $("vista-" + v).classList.toggle("oculto", v !== btn.getAttribute("data-vista"));
+          });
+          window.scrollTo({ top: 0 });
+        });
+      });
+
+      iniciar();
+    </script>
+  </body>
+</html>
