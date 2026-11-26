@@ -50,17 +50,13 @@
       .topbar a.brand{display:flex;align-items:center;gap:10px}
       .brand-logo{width:40px;height:40px;flex:0 0 auto}
       .brand small{display:block;font-family:"Nunito Sans",sans-serif;font-weight:700;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--rose)}
-      .demo-badge{
-        margin-left:auto;background:var(--rose-soft);color:var(--rose-dark);
-        font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
-        padding:5px 10px;border-radius:999px;white-space:nowrap;
-      }
       .top-wa{
         display:inline-flex;align-items:center;gap:7px;background:var(--wa);color:#fff;
         font-weight:800;font-size:.85rem;text-decoration:none;padding:9px 14px;border-radius:999px;white-space:nowrap;
       }
       .top-wa:active{background:var(--wa-dark)}
       .cart-btn{
+        margin-left:auto;
         position:relative;display:inline-flex;align-items:center;justify-content:center;
         width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);background:#fff;cursor:pointer;flex:0 0 auto;
       }
@@ -293,7 +289,6 @@
     <header class="topbar">
       <div class="wrap topbar-in">
         <a class="brand" href="#inicio"><img class="brand-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3QgeD0iMiIgeT0iMiIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTUiIGZpbGw9IiM3ZDNjOTgiLz4KICA8cmVjdCB4PSIyIiB5PSIyIiB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHJ4PSIxNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjBlMmY4IiBzdHJva2Utb3BhY2l0eT0iLjQ1IiBzdHJva2Utd2lkdGg9IjIiLz4KICA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPgogICAgPHBhdGggZD0iTTM3LjEgMTguNmE1LjEgNS4xIDAgMSAwLTUuMSA1LjF2My4xIi8+CiAgICA8cGF0aCBkPSJNMzIgMjYuOCAxNS45IDQwLjZhMi40IDIuNCAwIDAgMCAxLjkgNGgyOC40YTIuNCAyLjQgMCAwIDAgMS45LTRMMzIgMjYuOFoiLz4KICA8L2c+Cjwvc3ZnPgo=" alt="" width="40" height="40" /><span>El Clóset <small>de las 3 hermanas</small></span></a>
-        <span class="demo-badge">Demo</span>
         <button class="cart-btn" id="cartOpenBtn" aria-label="Abrir el carrito de compras">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7.2 14.6l.1.1c.1 0 .3.1.4.1h9.9c.8 0 1.4-.4 1.7-1L22 6H5.2L4.3 3H1v2h2l3.6 7.6-1.4 2.4c-.2.3-.3.7-.3 1 0 1.1.9 2 2 2h12v-2H7.4l.1-.1.8-1.3z"/></svg>
           <span class="cart-count" id="cartCount">0</span>
@@ -392,7 +387,7 @@
       <section class="quote" id="cotizacion">
         <div class="wrap">
           <h2>¿Te gusta esta tienda? Así sería la tuya</h2>
-          <p class="sub">Esta página es una demostración hecha por <strong>PixelAndina</strong>. Estos son los planes con los que podrías tener tu propia tienda en línea, con tu catálogo, tus precios y tu WhatsApp.</p>
+          <p class="sub">Esta tienda fue hecha por <strong>PixelAndina</strong>. Estos son los planes con los que podrías tener tu propia tienda en línea, con tu catálogo, tus precios y tu WhatsApp.</p>
           <div class="plans">
             <div class="plan">
               <h3>Landing</h3>
@@ -405,7 +400,7 @@
               <a class="btn btn-ghost" href="https://wa.me/593939462496?text=Hola%20PixelAndina%2C%20quiero%20informaci%C3%B3n%20del%20plan%20Landing%20de%20%2429" target="_blank" rel="noopener">Quiero este plan</a>
             </div>
             <div class="plan featured">
-              <span class="tag">Como esta demo</span>
+              <span class="tag">Como esta tienda</span>
               <h3>Web de negocio</h3>
               <div class="amount">$69 <small>desde · pago único</small></div>
               <ul>
@@ -414,7 +409,7 @@
                 <li>Sección de apartados y varias secciones</li>
                 <li>Lista para compartir con tus clientes</li>
               </ul>
-              <a class="btn btn-rose" href="https://wa.me/593939462496?text=Hola%20PixelAndina%2C%20quiero%20una%20web%20como%20la%20demo%20de%20El%20Cl%C3%B3set%20de%20las%203%20hermanas%20(plan%20Web%20de%20negocio%20de%20%2469)" target="_blank" rel="noopener">Quiero mi tienda así</a>
+              <a class="btn btn-rose" href="https://wa.me/593939462496?text=Hola%20PixelAndina%2C%20quiero%20una%20web%20como%20la%20tienda%20de%20El%20Cl%C3%B3set%20de%20las%203%20hermanas%20(plan%20Web%20de%20negocio%20de%20%2469)" target="_blank" rel="noopener">Quiero mi tienda así</a>
             </div>
             <div class="plan">
               <h3>App / tablero simple</h3>
