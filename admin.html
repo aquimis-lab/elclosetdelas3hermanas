@@ -136,6 +136,9 @@
       .badge-pagada{ background:var(--verde-bg); color:var(--verde); }
       .badge-apartado{ background:var(--ambar-bg); color:var(--ambar); }
       .badge-duena{ background:var(--morado-suave); color:var(--morado-osc); }
+      .badge-tienda{ background:var(--verde-bg); color:var(--verde); }
+      .badge-sinpub{ background:var(--ambar-bg); color:var(--ambar); }
+      .badge-revisando{ background:#f1eaf3; color:var(--gris); }
       .items{ margin:10px 0 0; padding:0; list-style:none; }
       .items li{
         display:flex; justify-content:space-between; gap:10px; padding:6px 0;
@@ -288,7 +291,7 @@
         <!-- CATÁLOGO -->
         <section id="vista-catalogo" class="vista oculto">
           <h2>Mi catálogo</h2>
-          <p class="desc">Aquí administras solo tus productos: los que agregues salen a tu nombre y su stock baja solo cuando se venden.</p>
+          <p class="desc">Aquí administras solo tus productos: los que agregues salen a tu nombre y su stock baja solo cuando se venden. La etiqueta de cada producto te dice si ya está «En la tienda» o todavía «Sin publicar».</p>
           <div class="form-card">
             <h3 id="prodFormTitulo">Agregar producto</h3>
             <form id="prodForm">
@@ -457,8 +460,10 @@
       var fotoDataUrl = "";        // foto en edición (data URL)
       var desuscribir = [];
       var espejo = {};             // id -> datos hoy publicados en «catalogo»
-      var espejoListo = false;     // true cuando ya llegó el primer snapshot de «catalogo»
+      var espejoListo = false;     // true cuando ya se conoce el contenido de «catalogo»
+      var productosListos = false; // true cuando ya llegó el primer snapshot de «productos»
       var sincronizando = false;   // evita escrituras de espejo en paralelo
+      var syncEnCola = false;      // otra sincronización pedida mientras una corría
 
       function $(id){ return document.getElementById(id); }
       function dinero(n){ return "$" + (Math.round((+n || 0) * 100) / 100).toFixed(2); }
@@ -499,29 +504,66 @@
           foto: d.foto || ""
         };
       }
-      // Sincronización del espejo al cargar: los productos creados antes de que
-      // existiera «catalogo» (o con datos desactualizados) se publican solos
-      // para que salgan en la tienda sin tener que editarlos a mano.
-      function sincronizarEspejo(){
-        if(!me || !db || !espejoListo || sincronizando) return;
-        var pendientes = productos.filter(function(p){
+      function espejoCoincide(p){
+        var actual = espejo[p.id];
+        if(!actual) return false;
+        var pub = pubNormalizado(p);
+        var hoy = pubNormalizado(actual);
+        return ["duenaUid","nombre","categoria","precio","stock","foto"].every(function(c){
+          return hoy[c] === pub[c];
+        });
+      }
+      function pendientesDeEspejo(mapa){
+        return productos.filter(function(p){
           if(p.duenaUid !== me.uid) return false;
-          var pub = pubNormalizado(p);
-          var actual = espejo[p.id];
+          var actual = mapa[p.id];
           if(!actual) return true;
+          var pub = pubNormalizado(p);
           var hoy = pubNormalizado(actual);
           return ["duenaUid","nombre","categoria","precio","stock","foto"].some(function(c){
             return hoy[c] !== pub[c];
           });
         });
-        if(!pendientes.length) return;
+      }
+      // Sincronización del espejo: los productos creados antes de que existiera
+      // «catalogo» (o con datos desactualizados) se publican solos para que
+      // salgan en la tienda sin tener que editarlos a mano. No depende del
+      // orden en que lleguen los snapshots: lee «catalogo» directamente con
+      // get() en cada corrida, escribe cada producto por separado (un fallo
+      // en uno no bloquea a los demás) y se relanza si la pidieron mientras
+      // ya corría. Se invoca al cargar los datos, al abrir «Mi catálogo» y
+      // con reintentos automáticos a los pocos segundos de entrar.
+      function sincronizarEspejo(){
+        if(!me || !db || !productosListos) return;
+        if(sincronizando){ syncEnCola = true; return; }
         sincronizando = true;
-        var lote = db.batch();
-        pendientes.forEach(function(p){
-          lote.set(db.collection("catalogo").doc(p.id), datosPublicos(p));
+        function terminar(){
+          sincronizando = false;
+          renderCatalogo();
+          if(syncEnCola){ syncEnCola = false; sincronizarEspejo(); }
+        }
+        function escribir(mapa){
+          var pendientes = pendientesDeEspejo(mapa);
+          if(!pendientes.length){ terminar(); return; }
+          var promesas = pendientes.map(function(p){
+            var datos = datosPublicos(p);
+            return db.collection("catalogo").doc(p.id).set(datos).then(function(){
+              espejo[p.id] = datos;
+            }).catch(function(){ /* un producto fallido no bloquea al resto */ });
+          });
+          Promise.all(promesas).then(terminar, terminar);
+        }
+        db.collection("catalogo").get().then(function(snap){
+          var mapa = {};
+          snap.forEach(function(doc){ mapa[doc.id] = doc.data(); });
+          espejo = mapa;
+          espejoListo = true;
+          escribir(mapa);
+        }).catch(function(){
+          // Si la lectura directa falla, se intenta con el mapa del snapshot.
+          if(espejoListo){ escribir(espejo); }
+          else { sincronizando = false; }
         });
-        function fin(){ sincronizando = false; }
-        lote.commit().then(fin, fin);
       }
 
       // ================= Modal =================
@@ -646,10 +688,13 @@
       function escucharDatos(){
         espejo = {};
         espejoListo = false;
+        productosListos = false;
+        syncEnCola = false;
         desuscribir.push(db.collection("productos").onSnapshot(function(snap){
           productos = [];
           snap.forEach(function(doc){ var p = doc.data(); p.id = doc.id; productos.push(p); });
           productos.sort(function(a,b){ return String(a.nombre||"").localeCompare(String(b.nombre||"")); });
+          productosListos = true;
           renderCatalogo(); renderVentaProductos();
           sincronizarEspejo();
         }, function(){ /* errores de permisos se reflejan como listas vacías */ }));
@@ -664,6 +709,11 @@
           snap.forEach(function(doc){ var v = doc.data(); v.id = doc.id; ventas.push(v); });
           renderResumen(); renderVentas(); renderCorte();
         }, function(){ }));
+        // Reintentos automáticos: si algún snapshot llegó antes de que todo
+        // estuviera listo, la sincronización del espejo se vuelve a intentar
+        // sola a los pocos segundos de entrar, sin depender de otro evento.
+        setTimeout(sincronizarEspejo, 1200);
+        setTimeout(sincronizarEspejo, 4000);
       }
 
       // ================= Cálculos por usuaria =================
@@ -821,12 +871,18 @@
         var mios = productos.filter(function(p){ return p.duenaUid === me.uid; });
         $("misProductosVacio").classList.toggle("oculto", mios.length > 0);
         $("misProductos").innerHTML = mios.map(function(p){
+          var estadoPub = !espejoListo
+            ? '<span class="badge badge-revisando">Comprobando…</span>'
+            : (espejoCoincide(p)
+                ? '<span class="badge badge-tienda">En la tienda</span>'
+                : '<span class="badge badge-sinpub">Sin publicar</span>');
           return '<div class="prod"><div class="foto">' +
             (p.foto ? '<img src="' + p.foto + '" alt="Foto de ' + esc(p.nombre) + '" />'
                     : '<span class="sinfoto">Sin foto</span>') +
             '</div><div class="cuerpo">' +
             '<div class="nombre">' + esc(p.nombre) + '</div>' +
             '<div class="cat">' + esc(p.categoria || "") + '</div>' +
+            '<div style="margin-top:5px;">' + estadoPub + '</div>' +
             '<div class="precios"><span>Precio <b>' + dinero(p.precio) + '</b></span><span>Costo ' + dinero(p.costo) + '</span></div>' +
             '<div class="stock' + ((p.stock || 0) <= 0 ? ' agotado' : '') + '">' +
               ((p.stock || 0) <= 0 ? 'Agotado' : 'Stock: ' + p.stock) + '</div>' +
@@ -1090,6 +1146,9 @@
           ["resumen","catalogo","ventas","corte"].forEach(function(v){
             $("vista-" + v).classList.toggle("oculto", v !== btn.getAttribute("data-vista"));
           });
+          // Al abrir «Mi catálogo» se vuelve a sincronizar el espejo público:
+          // cualquier producto suyo sin publicar se publica en ese momento.
+          if(btn.getAttribute("data-vista") === "catalogo") sincronizarEspejo();
           window.scrollTo({ top: 0 });
         });
       });
