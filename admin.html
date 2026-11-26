@@ -475,6 +475,17 @@
         var d = ts && ts.toDate ? ts.toDate() : (ts ? new Date(ts) : null);
         return (d && !isNaN(d.getTime())) ? d : null;
       }
+      // Espejo público «catalogo»: solo campos visibles para la tienda, nunca costo ni datos internos.
+      function datosPublicos(d){
+        return {
+          duenaUid: d.duenaUid,
+          nombre: d.nombre,
+          categoria: d.categoria,
+          precio: d.precio,
+          stock: d.stock,
+          foto: d.foto || ""
+        };
+      }
 
       // ================= Modal =================
       function abrirModal(titulo, cuerpoHTML, botones){
@@ -739,9 +750,16 @@
         };
         $("prodGuardar").disabled = true;
         var id = $("prodId").value;
-        var prom = id
-          ? db.collection("productos").doc(id).update(datos)
-          : db.collection("productos").add(datos);
+        var lote = db.batch();
+        if(id){
+          lote.update(db.collection("productos").doc(id), datos);
+          lote.set(db.collection("catalogo").doc(id), datosPublicos(datos));
+        } else {
+          var nuevoRef = db.collection("productos").doc();
+          lote.set(nuevoRef, datos);
+          lote.set(db.collection("catalogo").doc(nuevoRef.id), datosPublicos(datos));
+        }
+        var prom = lote.commit();
         prom.then(function(){
           $("prodGuardar").disabled = false;
           limpiarFormProducto();
@@ -804,7 +822,10 @@
               [
                 { texto:"Cancelar", clase:"btn-borde" },
                 { texto:"Sí, quitar", clase:"btn-peligro", onClick: function(){
-                    db.collection("productos").doc(p.id).delete().then(cerrarModal).catch(function(){
+                    var loteBorrar = db.batch();
+                    loteBorrar.delete(db.collection("productos").doc(p.id));
+                    loteBorrar.delete(db.collection("catalogo").doc(p.id));
+                    loteBorrar.commit().then(cerrarModal).catch(function(){
                       cerrarModal();
                       abrirModal("No se pudo quitar", '<p style="margin:0;">Inténtalo de nuevo en un momento.</p>', [{ texto:"Entendido" }]);
                     });
@@ -901,9 +922,11 @@
         var batch = db.batch();
         batch.set(db.collection("ventas").doc(), venta);
         sel.forEach(function(it){
+          var nuevoStock = (it.producto.stock || 0) - it.cantidad;
           batch.update(db.collection("productos").doc(it.producto.id), {
-            stock: (it.producto.stock || 0) - it.cantidad
+            stock: nuevoStock
           });
+          batch.set(db.collection("catalogo").doc(it.producto.id), { stock: nuevoStock }, { merge: true });
         });
         batch.commit().then(function(){
           $("btnRegistrarVenta").disabled = false;
