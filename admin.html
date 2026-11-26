@@ -139,6 +139,8 @@
       .badge-tienda{ background:var(--verde-bg); color:var(--verde); }
       .badge-sinpub{ background:var(--ambar-bg); color:var(--ambar); }
       .badge-revisando{ background:#f1eaf3; color:var(--gris); }
+      .badge-descartado{ background:var(--rojo-bg); color:var(--rojo); }
+      .badge-web{ background:#efe3f4; color:var(--morado-osc); }
       .items{ margin:10px 0 0; padding:0; list-style:none; }
       .items li{
         display:flex; justify-content:space-between; gap:10px; padding:6px 0;
@@ -163,6 +165,8 @@
       .prod .cuerpo{ padding:12px 14px 14px; display:flex; flex-direction:column; gap:3px; flex:1; }
       .prod .nombre{ font-weight:600; font-size:15px; }
       .prod .cat{ font-size:12.5px; color:var(--gris); }
+      .prod .sku{ font-size:12.5px; font-weight:700; color:var(--morado-osc); letter-spacing:.02em; }
+      .sku-txt{ font-weight:700; color:var(--morado-osc); white-space:nowrap; }
       .prod .precios{ display:flex; gap:12px; font-size:13.5px; margin-top:4px; flex-wrap:wrap; }
       .prod .precios b{ font-size:15px; }
       .prod .stock{ font-size:13px; color:var(--gris); }
@@ -220,6 +224,49 @@
       .modal .acciones{ display:flex; gap:8px; justify-content:flex-end; margin-top:16px; flex-wrap:wrap; }
       .cargando{ text-align:center; color:var(--gris); padding:34px 0; }
 
+      /* ---------- Comprobante de venta ---------- */
+      .comp-fondo{
+        position:fixed; inset:0; background:#fff; z-index:60; overflow:auto;
+        padding:20px 16px 44px;
+      }
+      .comp-acciones{ max-width:640px; margin:0 auto 16px; display:flex; gap:8px; flex-wrap:wrap; }
+      .comp-doc{
+        max-width:640px; margin:0 auto; background:#fff; color:var(--tinta);
+        border:1px solid var(--linea); border-radius:12px; padding:26px 24px;
+      }
+      .comp-cab{ display:flex; align-items:center; gap:14px; }
+      .comp-cab img{ width:56px; height:56px; border-radius:14px; display:block; }
+      .comp-cab .negocio{ font-size:19px; font-weight:700; line-height:1.25; }
+      .comp-cab .dato{ font-size:13px; color:var(--gris); }
+      .comp-titulo{
+        text-align:center; font-size:15.5px; font-weight:700; letter-spacing:.14em;
+        color:var(--morado-osc); margin:22px 0 2px;
+      }
+      .comp-num{ text-align:center; font-size:21px; font-weight:700; }
+      .comp-meta{ margin:16px 0 4px; font-size:14px; }
+      .comp-meta .fila{ display:flex; justify-content:space-between; gap:10px; padding:2px 0; flex-wrap:wrap; }
+      table.comp-tabla{ width:100%; border-collapse:collapse; font-size:13.5px; margin-top:10px; }
+      table.comp-tabla th{
+        text-align:left; border-bottom:2px solid var(--tinta); padding:6px 4px;
+        font-size:11.5px; text-transform:uppercase; letter-spacing:.03em;
+      }
+      table.comp-tabla td{ border-bottom:1px solid var(--linea); padding:6px 4px; vertical-align:top; }
+      table.comp-tabla .der{ text-align:right; white-space:nowrap; }
+      .comp-total{
+        display:flex; justify-content:space-between; font-size:17px; font-weight:700;
+        margin-top:12px; padding-top:10px; border-top:2px solid var(--tinta);
+      }
+      .comp-estado{ margin-top:14px; font-size:14px; }
+      .comp-estado .fila{ display:flex; justify-content:space-between; gap:10px; padding:2px 0; }
+      .comp-pie{ margin-top:24px; font-size:11.5px; color:var(--gris); text-align:center; line-height:1.55; }
+
+      @media print{
+        #loginView, #appView, #modalFondo{ display:none !important; }
+        .comp-acciones{ display:none !important; }
+        .comp-fondo{ position:static !important; overflow:visible !important; padding:0 !important; }
+        .comp-doc{ border:none !important; border-radius:0 !important; max-width:none !important; padding:0 !important; }
+      }
+
       @media (max-width:640px){
         .tarjetas{ grid-template-columns:1fr; }
         .form-grid{ grid-template-columns:1fr; }
@@ -270,8 +317,10 @@
       <nav class="tabs" id="tabs">
         <button type="button" data-vista="resumen" class="activa">Mi resumen</button>
         <button type="button" data-vista="catalogo">Mi catálogo</button>
+        <button type="button" data-vista="pedidos">Pedidos web</button>
         <button type="button" data-vista="ventas">Ventas</button>
         <button type="button" data-vista="corte">Corte semanal</button>
+        <button type="button" data-vista="comprobantes">Comprobantes</button>
       </nav>
 
       <main>
@@ -291,7 +340,7 @@
         <!-- CATÁLOGO -->
         <section id="vista-catalogo" class="vista oculto">
           <h2>Mi catálogo</h2>
-          <p class="desc">Aquí administras solo tus productos: los que agregues salen a tu nombre y su stock baja solo cuando se venden. La etiqueta de cada producto te dice si ya está «En la tienda» o todavía «Sin publicar».</p>
+          <p class="desc">Aquí administras solo tus productos: los que agregues salen a tu nombre y su stock baja solo cuando se venden. Cada producto lleva su SKU con tu código de dueña, y la etiqueta te dice si ya está «En la tienda» o todavía «Sin publicar».</p>
           <div class="form-card">
             <h3 id="prodFormTitulo">Agregar producto</h3>
             <form id="prodForm">
@@ -307,11 +356,16 @@
                   </div>
                 </div>
                 <div class="campo ancho">
-                  <label for="prodNombre">Nombre del producto</label>
+                  <label for="prodNombre">Nombre del producto *</label>
                   <input id="prodNombre" type="text" required placeholder="Ej.: Perfume floral 100 ml" />
                 </div>
+                <div class="campo ancho">
+                  <label for="prodSku">SKU del producto *</label>
+                  <input id="prodSku" type="text" readonly required />
+                  <div class="ayuda">Se genera solo: empieza con tu código de dueña (81 Marjorie · 82 Saira · 90 Lissette) y sigue un número único. No se puede editar, así nunca falta ni se equivoca.</div>
+                </div>
                 <div class="campo">
-                  <label for="prodCategoria">Categoría</label>
+                  <label for="prodCategoria">Categoría *</label>
                   <select id="prodCategoria">
                     <option>Perfumería</option>
                     <option>Ropa</option>
@@ -324,18 +378,19 @@
                   </select>
                 </div>
                 <div class="campo">
-                  <label for="prodStock">Stock (unidades)</label>
+                  <label for="prodStock">Stock (unidades) *</label>
                   <input id="prodStock" type="number" min="0" step="1" value="1" required />
                 </div>
                 <div class="campo">
-                  <label for="prodCosto">Costo ($)</label>
+                  <label for="prodCosto">Costo ($) *</label>
                   <input id="prodCosto" type="number" min="0" step="0.01" value="0" required />
                 </div>
                 <div class="campo">
-                  <label for="prodPrecio">Precio de venta ($)</label>
+                  <label for="prodPrecio">Precio de venta ($) *</label>
                   <input id="prodPrecio" type="number" min="0" step="0.01" value="0" required />
                 </div>
               </div>
+              <p class="ayuda" style="margin:12px 0 0;">Todos los datos marcados con * son obligatorios para guardar el producto. La única opcional es la foto.</p>
               <div id="prodError" class="error oculto" style="margin-top:12px;"></div>
               <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
                 <button class="btn" type="submit" id="prodGuardar">Guardar producto</button>
@@ -391,6 +446,18 @@
           <div id="listaVentasVacio" class="vacio oculto">Aún no hay ventas con productos tuyos.</div>
         </section>
 
+        <!-- PEDIDOS WEB -->
+        <section id="vista-pedidos" class="vista oculto">
+          <h2>Pedidos web</h2>
+          <p class="desc">Cada vez que una clienta envía su carrito desde la tienda web, el pedido queda registrado aquí. Cada producto se valida por separado con un clic, porque la clienta puede llevarse solo una parte: «Se vendió» descuenta su stock en ese momento y lo suma a la venta del pedido (una sola venta por pedido, que reparte lo de cada una); «No se vendió» no toca nada. Cuando todos los productos están validados, el pedido se cierra solo.</p>
+          <h3 style="font-size:15.5px;font-weight:700;margin-bottom:10px;">Pendientes de validar</h3>
+          <div id="pedidosPendientes"></div>
+          <div id="pedidosPendientesVacio" class="vacio oculto">No hay pedidos web esperando validación.</div>
+          <h3 style="font-size:15.5px;font-weight:700;margin:20px 0 10px;">Historial de validados</h3>
+          <div id="pedidosHistorial"></div>
+          <div id="pedidosHistorialVacio" class="vacio oculto">Todavía no se validó ningún pedido web.</div>
+        </section>
+
         <!-- CORTE -->
         <section id="vista-corte" class="vista oculto">
           <h2>Corte semanal</h2>
@@ -421,7 +488,25 @@
           <div id="corteVentas"></div>
           <div id="corteVacio" class="vacio oculto">No hay ventas tuyas en este periodo.</div>
         </section>
+
+        <!-- COMPROBANTES -->
+        <section id="vista-comprobantes" class="vista oculto">
+          <h2>Comprobantes</h2>
+          <p class="desc">Cada venta registrada puede generar su comprobante de venta con un número único (CV-0001, CV-0002…), que queda guardado en la venta para que siempre sea el mismo. El comprobante se puede imprimir, guardar en PDF o enviar por WhatsApp. Es un comprobante de venta interno: como aún no hay RUC, no reemplaza la factura electrónica.</p>
+          <div id="listaComprobantes"></div>
+          <div id="listaComprobantesVacio" class="vacio oculto">Aún no hay ventas registradas para generar comprobantes.</div>
+        </section>
       </main>
+    </div>
+
+    <!-- ============ COMPROBANTE (vista imprimible) ============ -->
+    <div id="vistaComprobante" class="comp-fondo oculto">
+      <div class="comp-acciones">
+        <button class="btn btn-chico" type="button" id="btnImprimirComp">Imprimir / Guardar en PDF</button>
+        <button class="btn btn-suave btn-chico" type="button" id="btnWhatsComp">Enviar por WhatsApp</button>
+        <button class="btn btn-borde btn-chico" type="button" id="btnCerrarComp">Cerrar</button>
+      </div>
+      <div class="comp-doc" id="comprobanteDoc"></div>
     </div>
 
     <!-- Modal genérico -->
@@ -452,11 +537,15 @@
         "kAYQYhpjEThRf5yhkmzJiF8ciwp1": { nombre: "Marjorie Méndez", usuario: "marjorie.mendez" }
       };
       var DOMINIO_CORREO = "@elclosetdelas3hermanas.online";
+      // Código de dueña: los dos primeros dígitos de todo SKU.
+      var CODIGOS_DUENA = { "marjorie.mendez": "81", "saira.mendez": "82", "lissette.mendez": "90" };
 
       var auth = null, db = null;
       var me = null;               // {uid, nombre, usuario}
       var productos = [];          // todo el catálogo
       var ventas = [];             // todas las ventas
+      var pedidos = [];            // pedidos registrados desde la tienda web
+      var asignandoSkus = false;   // evita asignaciones de SKU en paralelo
       var fotoDataUrl = "";        // foto en edición (data URL)
       var desuscribir = [];
       var espejo = {};             // id -> datos hoy publicados en «catalogo»
@@ -482,10 +571,56 @@
         var d = ts && ts.toDate ? ts.toDate() : (ts ? new Date(ts) : null);
         return (d && !isNaN(d.getTime())) ? d : null;
       }
+      // ---------- SKU por dueña ----------
+      function prefijoDe(uid){
+        var u = USUARIAS[uid];
+        return (u && CODIGOS_DUENA[u.usuario]) || "00";
+      }
+      function correlativoMaximo(){
+        var max = 0;
+        productos.forEach(function(p){
+          var m = /-(\d+)$/.exec(String(p.sku || ""));
+          if(m) max = Math.max(max, parseInt(m[1], 10) || 0);
+        });
+        return max;
+      }
+      function skuConNumero(uid, n){
+        var s = String(n);
+        while(s.length < 3) s = "0" + s;
+        return prefijoDe(uid) + "-" + s;
+      }
+      function siguienteSku(uid){
+        return skuConNumero(uid, correlativoMaximo() + 1);
+      }
+      // Productos creados antes de que existiera el SKU (p. ej. «La vida e
+      // bella») lo reciben solos, con el prefijo de su dueña, la próxima vez
+      // que se cargan los datos: se guarda en «productos» y en el espejo.
+      function asegurarSkus(){
+        if(!me || !db || !productosListos || asignandoSkus) return;
+        var sinSku = productos.filter(function(p){ return p.duenaUid === me.uid && !p.sku; });
+        if(!sinSku.length) return;
+        asignandoSkus = true;
+        var n = correlativoMaximo();
+        var lote = db.batch();
+        sinSku.forEach(function(p){
+          n += 1;
+          var copia = {};
+          for(var k in p) copia[k] = p[k];
+          copia.sku = skuConNumero(p.duenaUid, n);
+          lote.update(db.collection("productos").doc(p.id), { sku: copia.sku });
+          lote.set(db.collection("catalogo").doc(p.id), datosPublicos(copia));
+        });
+        lote.commit().then(
+          function(){ asignandoSkus = false; },
+          function(){ asignandoSkus = false; }
+        );
+      }
+
       // Espejo público «catalogo»: solo campos visibles para la tienda, nunca costo ni datos internos.
       function datosPublicos(d){
         return {
           duenaUid: d.duenaUid,
+          sku: d.sku || "",
           nombre: d.nombre,
           categoria: d.categoria,
           precio: d.precio,
@@ -497,6 +632,7 @@
         d = d || {};
         return {
           duenaUid: d.duenaUid || "",
+          sku: d.sku || "",
           nombre: d.nombre || "",
           categoria: d.categoria || "",
           precio: +d.precio || 0,
@@ -509,7 +645,7 @@
         if(!actual) return false;
         var pub = pubNormalizado(p);
         var hoy = pubNormalizado(actual);
-        return ["duenaUid","nombre","categoria","precio","stock","foto"].every(function(c){
+        return ["duenaUid","sku","nombre","categoria","precio","stock","foto"].every(function(c){
           return hoy[c] === pub[c];
         });
       }
@@ -520,7 +656,7 @@
           if(!actual) return true;
           var pub = pubNormalizado(p);
           var hoy = pubNormalizado(actual);
-          return ["duenaUid","nombre","categoria","precio","stock","foto"].some(function(c){
+          return ["duenaUid","sku","nombre","categoria","precio","stock","foto"].some(function(c){
             return hoy[c] !== pub[c];
           });
         });
@@ -535,6 +671,7 @@
       // con reintentos automáticos a los pocos segundos de entrar.
       function sincronizarEspejo(){
         if(!me || !db || !productosListos) return;
+        asegurarSkus();
         if(sincronizando){ syncEnCola = true; return; }
         sincronizando = true;
         function terminar(){
@@ -707,7 +844,12 @@
         desuscribir.push(db.collection("ventas").orderBy("fecha","desc").onSnapshot(function(snap){
           ventas = [];
           snap.forEach(function(doc){ var v = doc.data(); v.id = doc.id; ventas.push(v); });
-          renderResumen(); renderVentas(); renderCorte();
+          renderResumen(); renderVentas(); renderCorte(); renderComprobantes();
+        }, function(){ }));
+        desuscribir.push(db.collection("pedidos").orderBy("fecha","desc").onSnapshot(function(snap){
+          pedidos = [];
+          snap.forEach(function(doc){ var pd = doc.data(); pd.id = doc.id; pedidos.push(pd); });
+          renderPedidos();
         }, function(){ }));
         // Reintentos automáticos: si algún snapshot llegó antes de que todo
         // estuviera listo, la sincronización del espejo se vuelve a intentar
@@ -746,7 +888,7 @@
           '<div class="fecha">Registrada por ' + esc(v.registradaPorNombre || "") + ' · Total de la venta: ' + dinero(v.total) + '</div>' +
           '<ul class="items">';
         misItems.forEach(function(it){
-          html += '<li><span>' + esc(it.nombre) + ' <span class="cant">× ' + (it.cantidad || 0) + '</span></span><span>' +
+          html += '<li><span>' + esc(it.nombre) + (it.sku ? ' <span class="sku-txt">SKU ' + esc(it.sku) + '</span>' : '') + ' <span class="cant">× ' + (it.cantidad || 0) + '</span></span><span>' +
                   dinero((it.precio || 0) * (it.cantidad || 0)) + '</span></li>';
         });
         html += '</ul><div class="totales">' +
@@ -784,6 +926,7 @@
       // ================= Catálogo propio =================
       function limpiarFormProducto(){
         $("prodId").value = "";
+        $("prodSku").value = siguienteSku(me.uid);
         $("prodNombre").value = "";
         $("prodCategoria").selectedIndex = 0;
         $("prodCosto").value = 0;
@@ -829,16 +972,34 @@
         var errEl = $("prodError");
         errEl.classList.add("oculto");
         var nombre = $("prodNombre").value.trim();
-        var costo = parseFloat($("prodCosto").value) || 0;
-        var precio = parseFloat($("prodPrecio").value) || 0;
-        var stock = parseInt($("prodStock").value, 10) || 0;
-        if(!nombre){ errEl.textContent = "Ponle un nombre al producto."; errEl.classList.remove("oculto"); return; }
-        if(precio <= 0){ errEl.textContent = "El precio de venta debe ser mayor que cero."; errEl.classList.remove("oculto"); return; }
+        var categoria = $("prodCategoria").value;
+        var costoTxt = $("prodCosto").value.trim();
+        var precioTxt = $("prodPrecio").value.trim();
+        var stockTxt = $("prodStock").value.trim();
+        var costo = parseFloat(costoTxt);
+        var precio = parseFloat(precioTxt);
+        var stock = parseInt(stockTxt, 10);
+        // Todos los datos son obligatorios; la única opcional es la foto.
+        function falta(msg){ errEl.textContent = msg; errEl.classList.remove("oculto"); }
+        if(!nombre){ falta("Falta el nombre del producto: es obligatorio."); return; }
+        if(!categoria){ falta("Falta la categoría del producto: es obligatoria."); return; }
+        if(costoTxt === "" || isNaN(costo) || costo < 0){ falta("Falta el costo del producto: es obligatorio (puedes poner 0 si no tuvo costo)."); return; }
+        if(precioTxt === "" || isNaN(precio) || precio <= 0){ falta("Falta el precio de venta: es obligatorio y debe ser mayor que cero."); return; }
+        if(stockTxt === "" || isNaN(stock) || stock < 0){ falta("Falta el stock del producto: es obligatorio."); return; }
+        // SKU: al crear se recalcula en el momento de guardar para que el
+        // correlativo sea único entre todos los productos; al editar se
+        // conserva el del producto (o se le asigna si aún no tenía).
+        var idPrevio = $("prodId").value;
+        var existente = idPrevio ? productos.filter(function(x){ return x.id === idPrevio; })[0] : null;
+        var sku = (existente && existente.sku) ? existente.sku : siguienteSku(me.uid);
+        if(!sku || sku.indexOf("-") < 0){ falta("Falta el SKU del producto: es obligatorio. Cierra y vuelve a abrir el formulario."); return; }
+        $("prodSku").value = sku;
         var datos = {
           duenaUid: me.uid,
           duenaNombre: me.nombre,
+          sku: sku,
           nombre: nombre,
-          categoria: $("prodCategoria").value,
+          categoria: categoria,
           costo: costo,
           precio: precio,
           stock: stock,
@@ -868,6 +1029,8 @@
 
       function renderCatalogo(){
         if(!me) return;
+        // El formulario de producto nuevo siempre muestra su SKU ya generado.
+        if(!$("prodId").value) $("prodSku").value = siguienteSku(me.uid);
         var mios = productos.filter(function(p){ return p.duenaUid === me.uid; });
         $("misProductosVacio").classList.toggle("oculto", mios.length > 0);
         $("misProductos").innerHTML = mios.map(function(p){
@@ -881,6 +1044,7 @@
                     : '<span class="sinfoto">Sin foto</span>') +
             '</div><div class="cuerpo">' +
             '<div class="nombre">' + esc(p.nombre) + '</div>' +
+            '<div class="sku">SKU ' + esc(p.sku || "— asignando…") + '</div>' +
             '<div class="cat">' + esc(p.categoria || "") + '</div>' +
             '<div style="margin-top:5px;">' + estadoPub + '</div>' +
             '<div class="precios"><span>Precio <b>' + dinero(p.precio) + '</b></span><span>Costo ' + dinero(p.costo) + '</span></div>' +
@@ -896,6 +1060,7 @@
             var p = productos.filter(function(x){ return x.id === btn.getAttribute("data-editar"); })[0];
             if(!p) return;
             $("prodId").value = p.id;
+            $("prodSku").value = p.sku || siguienteSku(p.duenaUid);
             $("prodNombre").value = p.nombre || "";
             $("prodCategoria").value = p.categoria || "Perfumería";
             $("prodCosto").value = p.costo || 0;
@@ -959,7 +1124,7 @@
           return '<div class="vender-fila">' +
             (p.foto ? '<img src="' + p.foto + '" alt="" />' : '<img alt="" />') +
             '<div class="info"><div class="n">' + esc(p.nombre) + '</div>' +
-            '<div class="d">' + dinero(p.precio) + ' · de ' + esc(p.duenaNombre || "") + ' · stock ' + (p.stock || 0) + '</div></div>' +
+            '<div class="d">' + (p.sku ? '<span class="sku-txt">SKU ' + esc(p.sku) + '</span> · ' : '') + dinero(p.precio) + ' · de ' + esc(p.duenaNombre || "") + ' · stock ' + (p.stock || 0) + '</div></div>' +
             '<div class="cant"><input type="number" min="0" max="' + (p.stock || 0) + '" step="1" value="0" data-cant="' + p.id + '" aria-label="Cantidad de ' + esc(p.nombre) + '" /></div>' +
           '</div>';
         }).join("");
@@ -1014,6 +1179,7 @@
           items: sel.map(function(it){
             return {
               productoId: it.producto.id,
+              sku: it.producto.sku || "",
               duenaUid: it.producto.duenaUid,
               duenaNombre: it.producto.duenaNombre,
               nombre: it.producto.nombre,
@@ -1091,6 +1257,299 @@
         enlazarAbonos($("listaVentas"));
       }
 
+      // ================= Pedidos web =================
+      // La validación es POR PRODUCTO: cada ítem del pedido se marca «Se
+      // vendió» o «No se vendió» por separado. Los ítems llegan de la tienda
+      // sin estado (se tratan como pendientes). Al vender un ítem se
+      // descuenta su stock en ese momento y se suma a UNA sola venta por
+      // pedido (pedido.ventaId): se crea con el primer ítem vendido y los
+      // siguientes se agregan recalculando el total. El pedido se cierra
+      // cuando todos sus ítems están validados: «confirmado» si al menos
+      // uno se vendió, «descartado» si ninguno.
+      function nombreDuena(uid){
+        var u = USUARIAS[uid];
+        if(u) return u.nombre;
+        var p = productos.filter(function(x){ return x.duenaUid === uid; })[0];
+        return p ? (p.duenaNombre || "") : "";
+      }
+      function itemPedidoValidado(it){
+        return it.estadoItem === "vendido" || it.estadoItem === "no_vendido";
+      }
+      function pedidoCompleto(pd){
+        var items = pd.items || [];
+        return items.length > 0 && items.every(itemPedidoValidado);
+      }
+      function tarjetaPedido(pd, conBotones){
+        var items = pd.items || [];
+        var validados = items.filter(itemPedidoValidado).length;
+        var algunoVendido = items.some(function(it){ return it.estadoItem === "vendido"; }) || !!pd.ventaId;
+        var html = '<div class="tarjeta"><div class="fila"><div><strong>' + esc(pd.cliente || "Clienta") + '</strong>' +
+          ' <span class="badge badge-web">Pedido web</span>' +
+          ' <span class="badge ' + (pd.tipo === "apartado" ? "badge-apartado" : "badge-duena") + '">' +
+          (pd.tipo === "apartado" ? "Apartado" : "Compra") + '</span>';
+        if(!conBotones){
+          html += ' <span class="badge ' + (algunoVendido ? "badge-pagada" : "badge-descartado") + '">' +
+            (algunoVendido ? "Confirmado" : "Descartado") + '</span>';
+        }
+        html += '</div><span class="fecha">' + fechaTexto(pd.fecha) + '</span></div>';
+        if(pd.telefono) html += '<div class="fecha">Teléfono: ' + esc(pd.telefono) + '</div>';
+        html += '<div class="fecha">' + validados + ' de ' + items.length + ' productos validados</div>';
+        if(!conBotones && pd.fechaValidacion) html += '<div class="fecha">Cerrado el ' + fechaTexto(pd.fechaValidacion) + '</div>';
+        html += '<ul class="items">';
+        items.forEach(function(it, idx){
+          html += '<li><span>' + esc(it.nombre) +
+            (it.sku ? ' <span class="sku-txt">SKU ' + esc(it.sku) + '</span>' : '') +
+            ' <span class="cant">× ' + (it.cantidad || 0) + '</span>' +
+            ' <span class="cant">· de ' + esc(nombreDuena(it.duenaUid)) + '</span></span>' +
+            '<span>' + dinero((it.precio || 0) * (it.cantidad || 0)) + '</span></li>';
+          if(itemPedidoValidado(it)){
+            html += '<li style="border-top:none;padding-top:0;"><span><span class="badge ' +
+              (it.estadoItem === "vendido" ? "badge-pagada" : "badge-descartado") + '">' +
+              (it.estadoItem === "vendido" ? "Se vendió" : "No se vendió") + '</span></span>' +
+              '<span class="cant">Validado por ' + esc(it.validadoPorNombre || "") + '</span></li>';
+          } else if(conBotones){
+            html += '<li style="border-top:none;padding-top:0;"><span style="display:flex;gap:8px;flex-wrap:wrap;">' +
+              '<button class="btn btn-chico" type="button" data-item-vendido="' + pd.id + ':' + idx + '">Se vendió</button>' +
+              '<button class="btn btn-peligro btn-chico" type="button" data-item-nollevo="' + pd.id + ':' + idx + '">No se vendió</button>' +
+              '</span><span></span></li>';
+          }
+        });
+        html += '</ul><div class="totales"><div class="fila corresponde"><span>Total del pedido</span><span>' + dinero(pd.total) + '</span></div></div></div>';
+        return html;
+      }
+      function renderPedidos(){
+        if(!me) return;
+        var pendientes = pedidos.filter(function(pd){ return !pedidoCompleto(pd); });
+        var historial = pedidos.filter(function(pd){ return pedidoCompleto(pd); });
+        $("pedidosPendientesVacio").classList.toggle("oculto", pendientes.length > 0);
+        $("pedidosHistorialVacio").classList.toggle("oculto", historial.length > 0);
+        $("pedidosPendientes").innerHTML = pendientes.map(function(pd){ return tarjetaPedido(pd, true); }).join("");
+        $("pedidosHistorial").innerHTML = historial.map(function(pd){ return tarjetaPedido(pd, false); }).join("");
+        $("pedidosPendientes").querySelectorAll("[data-item-vendido]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            var partes = btn.getAttribute("data-item-vendido").split(":");
+            validarItemPedido(partes[0], parseInt(partes[1], 10), true, btn);
+          });
+        });
+        $("pedidosPendientes").querySelectorAll("[data-item-nollevo]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            var partes = btn.getAttribute("data-item-nollevo").split(":");
+            validarItemPedido(partes[0], parseInt(partes[1], 10), false, btn);
+          });
+        });
+      }
+      function validarItemPedido(pedidoId, indice, vendido, btn){
+        var pd = pedidos.filter(function(x){ return x.id === pedidoId; })[0];
+        if(!pd) return;
+        var items = (pd.items || []).map(function(it){
+          var c = {}; for(var k in it) c[k] = it[k]; return c;
+        });
+        var it = items[indice];
+        if(!it || itemPedidoValidado(it)) return;
+        if(btn) btn.disabled = true;
+        it.estadoItem = vendido ? "vendido" : "no_vendido";
+        it.validadoPorUid = me.uid;
+        it.validadoPorNombre = me.nombre;
+        var completo = items.every(itemPedidoValidado);
+        var algunoVendido = items.some(function(x){ return x.estadoItem === "vendido"; }) || !!pd.ventaId;
+        var datosPedido = { items: items };
+        if(completo){
+          datosPedido.estado = algunoVendido ? "confirmado" : "descartado";
+          datosPedido.fechaValidacion = firebase.firestore.FieldValue.serverTimestamp();
+        }
+        var batch = db.batch();
+        if(vendido){
+          var prod = productos.filter(function(x){ return x.id === it.productoId; })[0];
+          var itemVenta = {
+            productoId: it.productoId,
+            sku: it.sku || (prod ? (prod.sku || "") : ""),
+            duenaUid: it.duenaUid,
+            duenaNombre: (prod && prod.duenaNombre) || nombreDuena(it.duenaUid),
+            nombre: it.nombre,
+            precio: it.precio || 0,
+            cantidad: it.cantidad || 0
+          };
+          if(pd.ventaId){
+            var vAct = ventas.filter(function(x){ return x.id === pd.ventaId; })[0];
+            var itemsV = vAct ? (vAct.items || []).slice() : [];
+            itemsV.push(itemVenta);
+            var totalV = itemsV.reduce(function(s, x){ return s + (x.precio || 0) * (x.cantidad || 0); }, 0);
+            batch.update(db.collection("ventas").doc(pd.ventaId), {
+              items: itemsV,
+              total: Math.round(totalV * 100) / 100
+            });
+          } else {
+            var ventaRef = db.collection("ventas").doc();
+            batch.set(ventaRef, {
+              fecha: firebase.firestore.FieldValue.serverTimestamp(),
+              clienta: pd.cliente || "Clienta",
+              registradaPorUid: me.uid,
+              registradaPorNombre: me.nombre,
+              items: [itemVenta],
+              total: Math.round((itemVenta.precio * itemVenta.cantidad) * 100) / 100,
+              estado: pd.tipo === "apartado" ? "apartado" : "pagada",
+              abonos: [],
+              origen: "web",
+              pedidoId: pd.id
+            });
+            datosPedido.ventaId = ventaRef.id;
+          }
+          if(prod){
+            var ns = Math.max(0, (prod.stock || 0) - itemVenta.cantidad);
+            batch.update(db.collection("productos").doc(prod.id), { stock: ns });
+            batch.set(db.collection("catalogo").doc(prod.id), { stock: ns }, { merge: true });
+          }
+        }
+        batch.update(db.collection("pedidos").doc(pd.id), datosPedido);
+        batch.commit().catch(function(){
+          if(btn) btn.disabled = false;
+          abrirModal("No se pudo validar",
+            '<p style="margin:0;">El producto no se pudo validar. Inténtalo de nuevo en un momento.</p>',
+            [{ texto:"Entendido" }]);
+        });
+      }
+
+      // ================= Comprobantes de venta =================
+      // No son facturas electrónicas (aún no hay RUC): son comprobantes de
+      // venta internos. El número CV-XXXX se asigna la primera vez que se
+      // genera el comprobante de una venta y queda guardado en su documento
+      // (campo numeroComprobante), así siempre es el mismo.
+      var comprobanteActual = null; // venta cuyo comprobante está abierto
+      function formatoNumeroComp(n){
+        var s = String(n);
+        while(s.length < 4) s = "0" + s;
+        return "CV-" + s;
+      }
+      function renderComprobantes(){
+        if(!me) return;
+        $("listaComprobantesVacio").classList.toggle("oculto", ventas.length > 0);
+        $("listaComprobantes").innerHTML = ventas.map(function(v){
+          return '<div class="tarjeta"><div class="fila"><div><strong>' + esc(v.clienta || "Clienta") + '</strong>' +
+            ' <span class="badge ' + (v.estado === "pagada" ? "badge-pagada" : "badge-apartado") + '">' +
+            (v.estado === "pagada" ? "Pagada" : "Apartado") + '</span>' +
+            (v.numeroComprobante ? ' <span class="badge badge-duena">' + esc(v.numeroComprobante) + '</span>' : '') +
+            '</div><span class="fecha">' + fechaTexto(v.fecha) + '</span></div>' +
+            '<div class="totales"><div class="fila"><span>Total de la venta</span><span>' + dinero(v.total) + '</span></div></div>' +
+            '<div style="margin-top:12px;"><button class="btn btn-suave btn-chico" type="button" data-comprobante="' + v.id + '">' +
+            (v.numeroComprobante ? "Ver comprobante" : "Generar comprobante") + '</button></div></div>';
+        }).join("");
+        $("listaComprobantes").querySelectorAll("[data-comprobante]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            var v = ventas.filter(function(x){ return x.id === btn.getAttribute("data-comprobante"); })[0];
+            if(v) abrirComprobante(v);
+          });
+        });
+      }
+      function abrirComprobante(v){
+        function mostrar(){
+          comprobanteActual = v;
+          $("comprobanteDoc").innerHTML = htmlComprobante(v);
+          $("vistaComprobante").classList.remove("oculto");
+          window.scrollTo({ top: 0 });
+        }
+        if(v.numeroComprobante){ mostrar(); return; }
+        var max = 0;
+        ventas.forEach(function(x){
+          var n = parseInt(String(x.numeroComprobante || "").replace(/\D/g, ""), 10) || 0;
+          if(n > max) max = n;
+        });
+        var numero = formatoNumeroComp(max + 1);
+        db.collection("ventas").doc(v.id).update({ numeroComprobante: numero }).then(function(){
+          v.numeroComprobante = numero;
+          renderComprobantes();
+          mostrar();
+        }).catch(function(){
+          abrirModal("No se pudo generar",
+            '<p style="margin:0;">El comprobante no se pudo generar. Inténtalo de nuevo en un momento.</p>',
+            [{ texto:"Entendido" }]);
+        });
+      }
+      function htmlComprobante(v){
+        var abonado = (v.abonos || []).reduce(function(s, a){ return s + (a.monto || 0); }, 0);
+        var saldo = Math.max(0, (v.total || 0) - abonado);
+        var html = '<div class="comp-cab"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAAUcElEQVR42u2da1hT15rHVzYJgcglIKAg5U6oKMhFRFQUFLzUotUCVWvrwXp6tKPT0x56OuPT6ljn8UxbRoexrc6prdUqWoraaq03RC0otVrkqgISuQkCAcItEALZ8yE2YgjJXrnslZ2s3yeSvdabdy3+T7Ju73pZJEkCWpDLyf5uaVdLj6he3FYrbqsXdz7q7hb19fdI5UNyenwwPwg2YWvPdXAZ5zTJwdWL7+rDd/HiO06wt3XgEgSLBgdYRhUQKSfFLT21d5pLcx/U3GqkoT0YJf5RnqEJAT7h7vwJ9iyjickoAiJJUlQnLr5QlX+k2Kh9hKFI7NqwsEUCF28+i2VgJRlYQFKJ7O5V4emMX4Zl+FfJ5LDiEMvS5wbH+XF5HEPZNJiAJF0Dhd+XXTtUhKx7MJSZty4iJiWE52ijvykDCEgqGbxxvPTKwd9RdwsGjvi0yFmrQrk8a32M6CUgkiQrrgizt+ei7gqM7qTuSJgS76fz2Eh3AYlbeo5tvdhcJULdAxh9cRe4rN61kD/BXoe6Ogqo9FJ1zkd5qBuOMSTJ2+aHJgbC1oIWkEw6dCYjv/h8Fer2YgxP2GJBUnosh8umXgVOQD3tkn3rc3o7+lG3FGMs7JxtN32dbD+eR7E8hIDaajv3vpaNuoEYOtjybaqrjxOVklQF1FTZtn/DSdTtwtDHxgMrPYJctRYjqNjC6rFA9m842VTZprWYdgG11XZi9Vgm+zecbKvt1FxGi4B62iV43GPJ7H0tu6ddoqGAJgHJpEP71uegbgIGMfvW58ikQ2M91SSgMxn5eMaO6e3oP5ORP9bTMQVUeqkarxZiFBSfryq9VK32kXoBiVt68E4FZiQ5H+WJW3pGv69GQCRJHtt6EbXDGJPj2NaLo1cN1Qio4ooQ77FjRtNcJaq4IlR5U1VAUskgPt+DGYvs7blSyeDId1QFdON4KWonMSaNikKeEZCkawCfTMVo5srB3yVdA8qXzwio8Psy1O5hGMBInTwVkFQiwzEVGCpcO1QklcgUfz8V0N2rQh3tYSwPpVqenAciSfKjBQdwNKBarG3ZfpGe8WmR7gKX0U8rrgpvnihvvNs6NDiM2lP6sOIQ2y5vYLFYT06/iurEWD2jYVtbzUwJWbgxWkOZKXF+U+L8AAAX99/87VTF4B/f7ebNsEwuqhO7+jg9+QkrvoC3vVTxDHbbdnmDZvWMZOHG6A8urH9+jjdqx2lCoRkCAEDKSXwLggphSwRv/t8KHSqu+cfiFVvjjHcbhumQf6SYlJMEAEDtJpklE5oYsHJrvM7Vw5cErdu91IpD6bgwoxG39BAAgNo7zag9MSF8IzySty3Q04hf5KQV/667BJlC7Z1mAgBQmvsAtSemAseGnZaZZBBToYkBM1YEo26QcSnNfUDI5SS+O0zJ/DemG9Dai+/GOriNQ90mI1Jzq5Ho75aidsNU4PI4s1dNM6xN6pM4hkJ04RH0H4QkBBjcZmhiIPUwYSZCiOrFqH0wFWJSQoxh9vk5PqhbZkSItloxah9MBYrR4AXHSk5n/FJCeel17mvhqFtmRNht+BsIht2pWeLmHgDA7R/v/bSnIPnDBUGztSw9O06wQ+21ESE6H3Wj9oEx5H75m0I9CqR9suMfWHr0AdEt6kPtA2Noe6gaKD48JD//eSFqv1BC9PfgaTxVqn6tH/1mV0svar9QQuA8FUoeFjVpfqr2xIt7oAuwYMx/w486ZzOvwz61tmWb9yRLK1hAT2kVdny/47LaR9/vuNwq7FB5k0WwVuixaW8eQNzHaQmU5T5oEXYsfXu2b4SH4p2HRU1nM6+PVo+1LfvVj5f4hntotdl4rxV1s4wIFpAqrcKOg2+fseIQHC5bJh1SO+5xcrd/J3sNRYMFWSWo22REsIDUMyyTD8sG1T7yCp244fPl1E0Jb5vzYQcsIDhCEgJStkMcN8s/WjzQO0i9POPAAoIgJjVkyZZZUFWuHzPn3y+ABUSduLTI+evhjptlb88dGUZuluBpPCXmrYuAVc/vP90rz6tB7bjRwQLSTtTy4AUboqCqNN5tPZNRgNpxOsA/YVrwj/JMSo+FqlL1a/2xrRfkwxaxR4QFpAlHN7t1u5dCVSnIKr60/6Yxc6mbFlhAY8JigbS9cCE+OTvzSi9WQ1VhOlhAYzJ9WbCzhwP18l9u/KGhogW113SDBaQeWwcu1NBnzytZnU2WGN+CBaSeeesiKJaUDQztTjnaJzbz9Z6xwAJSA8+ROys1lErJYdlwxstHLDk4E68DqSFkAdUIw90pWZasHoAFpJal78yhUmz/hpOac2lZAlhAqjh52FMplvfVbSoZIc0eLCBV/Kd7UilWcKwYtacmARaQKqGJ2gdAP+0pGJJa0J2sGsACUsUnTPsxZ0vYZqcIFhA0A71SiaWu+owGCwiaEgvb7dIMFhA0TZU4G99TsICg6bX4tZ+RYAFBI7OknBhawQKCx3JOi1EACwijF1hAGL3AAsLoBRYQRi+wgDB6gQWE0QssIIxeYAFh9AIL6CksFlj6zmytxWJSQljmn9CSKlhAT2BbW7368ZLolVO1lpw81/fVj5ewra1Qu2wSYAEBAICNnfVbB5MFMV4UywtivN46mGxjZ43acfRgAQEH13Fbz6W5ePGharl48beeS3NwNeeEhFSwdAG5+Tqln1yrc/X0k2vdfCkliTJXLFpA3tPcNx9O1dPI5sOp3tPcUTcFGZYroClxfm98tswgpt74bNmUOD/UDUKD1TyvF1H7gIDol6eu2BpnQINT5/tLuqWPzPpSerVYooAWbopO+PMMg5sVzPTi2LBrbj9C3T5asSwBEWwiZfuC6cuCjWTfK2Siq4/TvYJaUm4ppxYtaAxkzeO8uf+lqfP9qVfpFvX914uHoJI6Tp3v/+b+l6x5HNTNpQlLEZCds+17p9Z6BLlSr1Jb3JS5+rikayBz9fHa4ibqFT2CXN87tdbO2RZ1o+nAIn7Cxj/n+LecV9kciM2Hop8rj39wSZGqRz4kL75Q7TjBjnpyQjbHavbqaaW5D8z+9iDzF5BnsNu/fJMCVeXK17fP7y0EI4cxJLhfUAsAoJIgTMnMl6dW32zobjPntMZmLqCgWd5pmXBX9f74ybUb35WpfVRb3Nwt6nt+tg91a5FJk5sqRe0NXah7wliYs4Aik55P+Y8EqCpH3z9fdlnTzRvNVaKmShGVK2CUhCYGdIv6mqvMMyDabAUUnxa5eDNcaqZ//uWU5sTNCtobuqpvNkQmTaZuWfGlVVvcjLpXDI8ZCohFsF76tziK16wqyVxzvKWmg2Lh7ra+0twHM1/WfnhIiW+4h+NE+8obdcC8VojMbRrPsWGnZb4Y8UIQ9SpSyeAnyw/DDlPaG7o+WX5YKoHIRhjxQlBa5oscG7O6WtmsBMRztHn72CoqV4wpaaps+3TFkd6OfsVLDpdta8clrNR3C2FF2NpxOdwnCujt6P90xRGoqzZ9wjzePraK52iDuqsMBuvDOftR+2AYoDIpKyjPq8nZmScfkgMA/MOfi1s1w9HFTvGouqju0jeFA31PVnFsxnET/xQTGOGteNkl6r16/LeaOw0AAIJNJH84H2qBGwCwJzWrs9kcUiOYyRjIXeCy5cgrUFUKsopPf5pPykkOl530VlzMsjAb3tMjquPd+VFLpt4tFEolg46u9n/575Tx7nzlUxue9fMzfN28xwtLGoZlwxVXhRwbtlfIROqfHpMScv96nRlcNWQOAvKP8tzwBUQebgDA2f+5/svhOwAADpe95YtXnSc6qi0WkTD55s9lb2WuUvvUeaJj9NLQ2xcq5MPymtuPJN1SwUyqp6oBAFHLg+vLWzqbulH3n14wXkDTFgau3rUIqsp3H166c65S8feSP8e6TOJrKCxq7BRE+WgowHdzqL5dBwB4dK+19WEn1G9Z2CJBx6Nu6rM/E4TZApqzZlrS3+DyUX61+XT1zQbF35MC3ea9oiUZqrUth++mKWuYyyR+/b3mno4+AEBbbaewqAlqDhg8z1cmHaovY2qiMaYKSBEEOO91qkmZFHz2enbT/aeTppT3FtmM42quolk9CjwFE+9cvqf4u6ult+KqcMaKKdS98o/y5PFtHvwha2bByGk89SDAkWSsPNL6sFP50s6Jx3ejlBZDK3w3ezsnnvJl68POjJVHoCxEr5zK0GBF5gkINggQACCqF+9aclBlV9zdD+JskFZUrHW39e1aclBUL6ZugaHBigwTkA5BgFWF9V+k5Qz0qi4Zu3hCGNHKaGsDvYNfpOVUFdZDGGFgsCKTBKRDEODNk+VH3z83pO5iXg7XkKdO1VobGhw++v65myfLoUwxK1iRMQLSIQjw4r5fz+65PtalvJKufgO6N5Y1kgRn91y/uO9XKGsMClZkhoB0CAI8sTOvIKtEQ4HWekOuvmi2VpBVcmJnHpRBpgQrMkBA0S9PfWVnIlSVQ++e1ZoShU4BAQBKLlYfevcslM1XdiZGw5wYQYKpC2jhpuilf9V+6dNI9r1xouZWo9ZiA33S1vp2gzjZWt+u3HbVQM2txn1vnICyvPSvsxduijaIk0bCdAVEsInUHQlz1oRB1dqTmkX98Oi1724bxFXqdpqrRHtSs6CMz1kTlrojgWCb6H/KRN3SOQgQ6oxEw/3HfXoPpfu6+hvuP6ZevrO5x5yCFU1RQPoEAcJ+1g//e1lPb3WwYE7Biia3F6ZnECAsfeJ+7jhrnVeli3LvVhQ80KGi2QQrmpaADBMECElDZUtkYrAV/CBDJh06sfuS7vcomEWwogkJyLBBgNQh5WTlb7URCRBhOgq++eCH/h59s+8yPVjRVARkjCBA6kglgw2Vj6fMhggXzP7kfJuBVpIYHaxoEgIyXhAgdbrb+zqauwTTfagUPrv/2sNSQ14kxdxgRcQCoiEIkDrtTeKeTol/2HOai1385sa9QqHBP52hwYooBcSxYa/bvXRyrC/1KlLJ4O7ko10tvUZyqbW+o1esSUOXDt0ozzdW3vj+bumtH+9OXz6Z+iTUPdDFN9y9/IpQEZxEP8gExHO02XIkdYLfeOpVmirbPv9TjrEnsa11HeLWnsBI79GPzn2ZX3HdMKOusRjsH7p5siJghqe9C9VTQfyJ9uEvBBWfr5JJh4zqm1rQCMjJ3f69U69xeRCn78rzar79+7khKR0pt0WNnY9r2yfPfGYz/FTm5erf62j49GGZvOjnShcvvpuvM8UqXJ71nDVhxeerRp+bMzYIBKRPECBtTopbuh+WPQqZK1C8zPrPs42VEPsVekLKSaYEK9ItIH2CAGmmVyypuP4gIjH4wN9z2psQLLowIliRVgGFJASs+YfuQYD0I+2XFZ4ukfbLUDmgW7CiqKGrVUhTsCJ9m6lufs4p2xdAVflq8+mKq4afMDOLiqvCrzafhqqSsn2Bmx/V8ZOe0CegpW/DnQv77PXsuhIzvNJLB+pKmj97PRuqCmxv6wxNArKxt/aNgNgyVAkCxMAGK/pGeNjY0xFiRpOA/CI9KZZUGwSIAfDBitT7XB9oExClr5+xggAxCqCCFSn2uZ7QdF9fYDSluaggxmvb5Q30uGT2UOxzPaHpG8h+PE9/Ixgo6OlzmgQkfmwO9wEyC3r6nCYBPboPcZUpxiDQ0+c0CejOz8hWky0WevqcJgHV4iVB2qGnz2kSkHxInr09l57PwgAAsrfn0nPEjL6tjPK8mvyjCDbVLZD8o3fK84x78E0JrbvxwtuPCDbhw5CbbxjKtcNFuf+8RdvH0X0e6GFR07382oAZnrb2XP2tYUbS2dR98F/PlOXqEimrM8hyZfAn2gXH+QXP9YU6dIcZTX3Z47u/PLx7VSh+bKxYAw2YRLIVKw5BWBE6BBdbMsNDcvmwXLcbAQyISeSuGpbJh2VyZMf+MHpAmOzNRRhGQODBLEYfCAfKAWwYzGgIp0nak4lgMGNBuMKkDcBgVCBcffiofcAwGAIqcQkGowLhOMEwObMwlglh64Cn8RjdIQiC5R9FRwARxvzwj/IkAAChCRDXO2IwSkITAggAgE84PqCD0QWfcHcCAMDH42iMTvAn2BMAABbBil0bhtoZDMOIXRvGIlhPtuLDFglQ+4NhGArNPBGQizffioPPdWCoYsUhXLz5QCkgFou1LH0uaq8wjGFZ+lwWiwVGhvUEMyHFK8ZEUKrlqYC4PM68dRGoHcMwgHnrIrh/pE98ZtwTkxKC2jcMAxipk2cExHO0iU+LRO0exqSJT4vkOdooX6rOvGatgkucg7E0VBSiKiAuzzp1B1ziN4zlkLojQSXDiZq1nynxfu4CqplgMZaDu8BlSrzqVF2NgFgs1updC1F7izE5Vu9aqFj7GYn61Wf+BPvkbfNRO4wxIZK3zVe76T7m9kVoYmDYYrxBhgEAgLDFgtDEQLWPNO1/JaXH2jnbonYegxg7Z9uk9NixnmoSEIfL3vR1Mmr/MYjZ9HUyhzvmJRxaduDtx/O2fJuKugkYZGz5NlXzheXaj3C4+jhtPLASdUMwCNh4YKWrj5PmMpTOAHkEuWINWRobD6z0CHLVWoxFklQz2bbVdu59DS7tGYahbPk2Vet3jwIIAQEAetol+9bn9Hb0o24gxljYOdtu+jqZeqIWOAEBAGTSoTMZ+cXnq1C3FGN4whYLktJjNcy5RgMtIAWll6pzPspD3V6MIUneNn+s1UIN6CggAIC4pefY1ovNVSLUDcfoi7vAZfWuhbqFB+ouIAAASZIVV4Q4CQajSd2RMCXeb/QuKUX0EpACqWTwxvHSKwd/R90VGDji0yJnrQpVOd8DiwEEpEDSNVD4fdm1Q0WouwWjnXnrImJSQkaeTNUZgwlIgVQiu3tVeDrjF+Q3qGNGY8UhlqXPDY7zU8ZU6I+BBaSAJElRnbj4QlX+kWI6OwgzFrFrw8IWCVy8+TqPdcbCKAJSQspJcUtP7Z3m0twHNbcajdtJmGfxj/IMTQjwCXfnT7BnEQbWjZL/B/7PuBn4XezWAAAAAElFTkSuQmCC" alt="" />' +
+          '<div><div class="negocio">El Clóset de las 3 hermanas</div>' +
+          '<div class="dato">WhatsApp 096 305 7331</div></div></div>' +
+          '<div class="comp-titulo">COMPROBANTE DE VENTA</div>' +
+          '<div class="comp-num">N.º ' + esc(v.numeroComprobante || "") + '</div>' +
+          '<div class="comp-meta">' +
+          '<div class="fila"><span>Fecha de la venta</span><strong>' + fechaTexto(v.fecha) + '</strong></div>' +
+          '<div class="fila"><span>Clienta</span><strong>' + esc(v.clienta || "Clienta") + '</strong></div>' +
+          '<div class="fila"><span>Atendido por</span><strong>' + esc(v.registradaPorNombre || "") + '</strong></div></div>' +
+          '<table class="comp-tabla"><thead><tr><th>SKU</th><th>Producto</th>' +
+          '<th class="der">Cant.</th><th class="der">Precio</th><th class="der">Subtotal</th></tr></thead><tbody>';
+        (v.items || []).forEach(function(it){
+          html += '<tr><td>' + esc(it.sku || "—") + '</td><td>' + esc(it.nombre || "") + '</td>' +
+            '<td class="der">' + (it.cantidad || 0) + '</td>' +
+            '<td class="der">' + dinero(it.precio) + '</td>' +
+            '<td class="der">' + dinero((it.precio || 0) * (it.cantidad || 0)) + '</td></tr>';
+        });
+        html += '</tbody></table>' +
+          '<div class="comp-total"><span>Total</span><span>' + dinero(v.total) + '</span></div>' +
+          '<div class="comp-estado">';
+        if(v.estado === "pagada"){
+          html += '<strong>Estado: PAGADA</strong>';
+        } else {
+          html += '<strong>Estado: APARTADO</strong>';
+          (v.abonos || []).forEach(function(a, i){
+            html += '<div class="fila"><span>Abono ' + (i + 1) + (a.fecha ? ' · ' + fechaTexto(a.fecha) : '') + '</span><span>' + dinero(a.monto) + '</span></div>';
+          });
+          html += '<div class="fila"><span>Total abonado</span><span>' + dinero(abonado) + '</span></div>' +
+            '<div class="fila" style="font-weight:700;"><span>Saldo pendiente</span><span>' + dinero(saldo) + '</span></div>';
+        }
+        html += '</div>' +
+          '<div class="comp-pie">Comprobante de venta interno. No constituye factura electrónica.<br />El Clóset de las 3 hermanas · WhatsApp 096 305 7331</div>';
+        return html;
+      }
+      function textoComprobanteWA(v){
+        var lineas = [];
+        lineas.push("El Clóset de las 3 hermanas");
+        lineas.push("Comprobante de venta " + (v.numeroComprobante || ""));
+        lineas.push("Clienta: " + (v.clienta || ""));
+        lineas.push("Fecha: " + fechaTexto(v.fecha));
+        lineas.push("");
+        (v.items || []).forEach(function(it){
+          lineas.push("- " + (it.nombre || "") + (it.sku ? " (SKU " + it.sku + ")" : "") +
+            " x " + (it.cantidad || 0) + " — " + dinero((it.precio || 0) * (it.cantidad || 0)));
+        });
+        lineas.push("");
+        lineas.push("Total: " + dinero(v.total));
+        if(v.estado === "pagada"){
+          lineas.push("Estado: PAGADA");
+        } else {
+          var abonado = (v.abonos || []).reduce(function(s, a){ return s + (a.monto || 0); }, 0);
+          lineas.push("Estado: APARTADO · Abonado: " + dinero(abonado) +
+            " · Saldo pendiente: " + dinero(Math.max(0, (v.total || 0) - abonado)));
+        }
+        lineas.push("Comprobante de venta interno. No constituye factura electrónica.");
+        return lineas.join("\n");
+      }
+      function telefonoDeVenta(v){
+        if(!v.pedidoId) return "";
+        var pd = pedidos.filter(function(x){ return x.id === v.pedidoId; })[0];
+        if(!pd || !pd.telefono) return "";
+        var d = String(pd.telefono).replace(/\D/g, "");
+        if(d.length === 10 && d.charAt(0) === "0") d = "593" + d.slice(1);
+        else if(d.length === 9) d = "593" + d;
+        return d;
+      }
+      $("btnCerrarComp").addEventListener("click", function(){
+        $("vistaComprobante").classList.add("oculto");
+        comprobanteActual = null;
+      });
+      $("btnImprimirComp").addEventListener("click", function(){
+        window.print();
+      });
+      $("btnWhatsComp").addEventListener("click", function(){
+        if(!comprobanteActual) return;
+        var texto = encodeURIComponent(textoComprobanteWA(comprobanteActual));
+        var tel = telefonoDeVenta(comprobanteActual);
+        var url = tel
+          ? "https://wa.me/" + tel + "?text=" + texto
+          : "https://api.whatsapp.com/send?text=" + texto;
+        window.open(url, "_blank");
+      });
+
       // ================= Corte =================
       function rangoSemana(desplazamiento){
         var hoy = new Date();
@@ -1143,7 +1602,7 @@
         btn.addEventListener("click", function(){
           $("tabs").querySelectorAll("button").forEach(function(b){ b.classList.remove("activa"); });
           btn.classList.add("activa");
-          ["resumen","catalogo","ventas","corte"].forEach(function(v){
+          ["resumen","catalogo","pedidos","ventas","corte","comprobantes"].forEach(function(v){
             $("vista-" + v).classList.toggle("oculto", v !== btn.getAttribute("data-vista"));
           });
           // Al abrir «Mi catálogo» se vuelve a sincronizar el espejo público:
