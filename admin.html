@@ -449,7 +449,7 @@
         <!-- PEDIDOS WEB -->
         <section id="vista-pedidos" class="vista oculto">
           <h2>Pedidos web</h2>
-          <p class="desc">Cada vez que una clienta envía su carrito desde la tienda web, el pedido queda registrado aquí. Cada producto se valida por separado con un clic, porque la clienta puede llevarse solo una parte: «Se vendió» descuenta su stock en ese momento y lo suma a la venta del pedido (una sola venta por pedido, que reparte lo de cada una); «No se vendió» no toca nada. Cuando todos los productos están validados, el pedido se cierra solo. Con los botones «Avisar a…» de cada pedido, cada dueña recibe en su WhatsApp personal solo sus productos de ese pedido, para que entre a su panel a validarlos.</p>
+          <p class="desc">Cada vez que una clienta envía su carrito desde la tienda web, el pedido queda registrado aquí. Cada producto se valida por separado con un clic, porque la clienta puede llevarse solo una parte: «Se vendió» descuenta su stock en ese momento y lo suma a la venta del pedido (una sola venta por pedido, que reparte lo de cada una); «No se vendió» no toca nada. Cuando todos los productos están validados, el pedido se cierra solo. Con los botones «Avisar a…» de cada pedido, cada dueña recibe en su WhatsApp personal solo sus productos de ese pedido, para que entre a su panel a validarlos. Si una clienta repite un pedido y ya fue validado, el bot\u00f3n \u00abEliminar por duplicado\u00bb de esa tarjeta lo quita de las ventas y devuelve el stock.</p>
           <h3 style="font-size:15.5px;font-weight:700;margin-bottom:10px;">Pendientes de validar</h3>
           <div id="pedidosPendientes"></div>
           <div id="pedidosPendientesVacio" class="vacio oculto">No hay pedidos web esperando validación.</div>
@@ -1354,6 +1354,9 @@
           });
           if(botones) html += '<div style="margin-top:12px;"><div class="fecha" style="margin-bottom:6px;">Avisar a cada dueña (solo recibe lo suyo):</div><div style="display:flex;gap:8px;flex-wrap:wrap;">' + botones + '</div></div>';
         }
+        if(pd.ventaId || (pd.items || []).some(function(it){ return it.estadoItem === "vendido"; })){
+          html += '<div style="margin-top:12px;border-top:1px dashed #e5d5ec;padding-top:10px;"><button class="btn btn-peligro btn-chico" type="button" data-pedido-duplicado="' + pd.id + '">Eliminar por duplicado</button> <span class="fecha">Si la clienta repiti\u00f3 este pedido: lo quita de las ventas y del resumen, y devuelve el stock de lo vendido.</span></div>';
+        }
         html += '</div>';
         return html;
       }
@@ -1376,6 +1379,39 @@
             var partes = btn.getAttribute("data-item-nollevo").split(":");
             validarItemPedido(partes[0], parseInt(partes[1], 10), false, btn);
           });
+        });
+        ["pedidosPendientes","pedidosHistorial"].forEach(function(cont){
+          $(cont).querySelectorAll("[data-pedido-duplicado]").forEach(function(btn){
+            btn.addEventListener("click", function(){
+              eliminarPedidoDuplicado(btn.getAttribute("data-pedido-duplicado"), btn);
+            });
+          });
+        });
+      }
+      // Eliminar un pedido web DUPLICADO aunque ya est\u00e9 validado como
+      // vendido: borra el pedido y su venta (deja de sumar en el resumen y
+      // en el corte, y su comprobante desaparece) y devuelve el stock de
+      // cada producto vendido, en «productos» y en el espejo «catalogo».
+      function eliminarPedidoDuplicado(pedidoId, btn){
+        var pd = pedidos.filter(function(x){ return x.id === pedidoId; })[0];
+        if(!pd) return;
+        var vendidos = (pd.items || []).filter(function(it){ return it.estadoItem === "vendido"; });
+        if(!confirm("\u00bfEliminar el pedido de " + (pd.cliente || "la clienta") + " por duplicado?\n\nSe borrar\u00e1n el pedido y su venta: dejar\u00e1 de sumar en el resumen y en el corte, y el stock de los productos vendidos volver\u00e1 a como estaba.\n\nEsta acci\u00f3n no se puede deshacer.")) return;
+        if(btn) btn.disabled = true;
+        var batch = db.batch();
+        vendidos.forEach(function(it){
+          var prod = productos.filter(function(x){ return x.id === it.productoId; })[0];
+          if(prod){
+            var ns = (prod.stock || 0) + (it.cantidad || 0);
+            batch.update(db.collection("productos").doc(prod.id), { stock: ns });
+            batch.set(db.collection("catalogo").doc(prod.id), { stock: ns }, { merge: true });
+          }
+        });
+        if(pd.ventaId) batch.delete(db.collection("ventas").doc(pd.ventaId));
+        batch.delete(db.collection("pedidos").doc(pd.id));
+        batch.commit().catch(function(e){
+          if(btn) btn.disabled = false;
+          alert("No se pudo eliminar el pedido. Int\u00e9ntalo de nuevo.");
         });
       }
       function validarItemPedido(pedidoId, indice, vendido, btn){
