@@ -449,7 +449,7 @@
         <!-- PEDIDOS WEB -->
         <section id="vista-pedidos" class="vista oculto">
           <h2>Pedidos web</h2>
-          <p class="desc">Cada vez que una clienta envía su carrito desde la tienda web, el pedido queda registrado aquí. Cada producto se valida por separado con un clic, porque la clienta puede llevarse solo una parte: «Se vendió» descuenta su stock en ese momento y lo suma a la venta del pedido (una sola venta por pedido, que reparte lo de cada una); «No se vendió» no toca nada. Cuando todos los productos están validados, el pedido se cierra solo.</p>
+          <p class="desc">Cada vez que una clienta envía su carrito desde la tienda web, el pedido queda registrado aquí. Cada producto se valida por separado con un clic, porque la clienta puede llevarse solo una parte: «Se vendió» descuenta su stock en ese momento y lo suma a la venta del pedido (una sola venta por pedido, que reparte lo de cada una); «No se vendió» no toca nada. Cuando todos los productos están validados, el pedido se cierra solo. Con los botones «Avisar a…» de cada pedido, cada dueña recibe en su WhatsApp personal solo sus productos de ese pedido, para que entre a su panel a validarlos.</p>
           <h3 style="font-size:15.5px;font-weight:700;margin-bottom:10px;">Pendientes de validar</h3>
           <div id="pedidosPendientes"></div>
           <div id="pedidosPendientesVacio" class="vacio oculto">No hay pedidos web esperando validación.</div>
@@ -539,6 +539,15 @@
       var DOMINIO_CORREO = "@elclosetdelas3hermanas.online";
       // Código de dueña: los dos primeros dígitos de todo SKU.
       var CODIGOS_DUENA = { "marjorie.mendez": "81", "saira.mendez": "82", "lissette.mendez": "90" };
+      // WhatsApp personal de cada dueña, para los avisos de pedidos web
+      // (ruta práctica, 2026-11-27): el pedido de la clienta sigue llegando
+      // al número de la tienda y desde el panel se avisa a cada dueña solo
+      // lo suyo con el botón «Avisar a…» de cada pedido.
+      var TELEFONOS_DUENA = { "marjorie.mendez": "593978980786", "saira.mendez": "593960779112", "lissette.mendez": "593978971800" };
+      function telefonoDuena(uid){
+        var u = USUARIAS[uid];
+        return (u && TELEFONOS_DUENA[u.usuario]) || "";
+      }
 
       var auth = null, db = null;
       var me = null;               // {uid, nombre, usuario}
@@ -1314,7 +1323,37 @@
               '</span><span></span></li>';
           }
         });
-        html += '</ul><div class="totales"><div class="fila corresponde"><span>Total del pedido</span><span>' + dinero(pd.total) + '</span></div></div></div>';
+        html += '</ul>';
+        // Aviso para la dueña en sesión: qué parte del pedido es suya.
+        if(me){
+          var misPend = items.filter(function(it){ return it.duenaUid === me.uid && !itemPedidoValidado(it); });
+          if(misPend.length){
+            html += '<div style="background:#f3e8f8;border:1.5px solid #7d3c98;border-radius:12px;padding:10px 12px;margin:10px 0;font-weight:700;color:#4a235a;">Este pedido tiene ' + misPend.length + (misPend.length === 1 ? ' producto tuyo' : ' productos tuyos') + ' por validar.</div>';
+          }
+        }
+        html += '<div class="totales"><div class="fila corresponde"><span>Total del pedido</span><span>' + dinero(pd.total) + '</span></div></div>';
+        // Avisos por dueña (ruta práctica): un botón por cada dueña con
+        // productos en este pedido; el mensaje lleva SOLO lo de ella.
+        if(conBotones){
+          var porDuena = {};
+          items.forEach(function(it){ (porDuena[it.duenaUid] = porDuena[it.duenaUid] || []).push(it); });
+          var botones = "";
+          Object.keys(porDuena).forEach(function(uid){
+            var tel = telefonoDuena(uid);
+            if(!tel) return;
+            var nombre = nombreDuena(uid);
+            var lineas = porDuena[uid].map(function(it){
+              return "\u2022 " + it.nombre + (it.sku ? " (SKU " + it.sku + ")" : "") + " \u00d7 " + (it.cantidad || 0) + " \u2014 " + dinero((it.precio || 0) * (it.cantidad || 0));
+            });
+            var texto = "Hola " + nombre.split(" ")[0] + ", tienes un pedido nuevo en El Cl\u00f3set de las 3 hermanas.\n" +
+              "Clienta: " + (pd.cliente || "Clienta") + (pd.telefono ? " (" + pd.telefono + ")" : "") + "\n" +
+              "Lo tuyo en este pedido:\n" + lineas.join("\n") + "\n" +
+              "Entra a tu panel para verlo y validarlo: https://elclosetdelas3hermanas.online/admin.html";
+            botones += '<a class="btn btn-chico" style="background:#25a059;color:#fff;text-decoration:none;" target="_blank" rel="noopener" href="https://wa.me/' + tel + '?text=' + encodeURIComponent(texto) + '">Avisar a ' + esc(nombre.split(" ")[0]) + '</a> ';
+          });
+          if(botones) html += '<div style="margin-top:12px;"><div class="fecha" style="margin-bottom:6px;">Avisar a cada dueña (solo recibe lo suyo):</div><div style="display:flex;gap:8px;flex-wrap:wrap;">' + botones + '</div></div>';
+        }
+        html += '</div>';
         return html;
       }
       function renderPedidos(){
