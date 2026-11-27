@@ -1302,6 +1302,7 @@
         }
         html += '</div><span class="fecha">' + fechaTexto(pd.fecha) + '</span></div>';
         if(pd.telefono) html += '<div class="fecha">Teléfono: ' + esc(pd.telefono) + '</div>';
+        if(conBotones) html += '<div class="fecha" style="color:#7d3c98;font-weight:600;">Este pedido entr\u00f3 solo cuando la clienta toc\u00f3 \u00abEnviar\u00bb en la tienda, aunque no haya completado el mensaje de WhatsApp. Si no les escribe, cont\u00e1ctenla a su tel\u00e9fono.</div>';
         html += '<div class="fecha">' + validados + ' de ' + items.length + ' productos validados</div>';
         if(!conBotones && pd.fechaValidacion) html += '<div class="fecha">Cerrado el ' + fechaTexto(pd.fechaValidacion) + '</div>';
         html += '<ul class="items">';
